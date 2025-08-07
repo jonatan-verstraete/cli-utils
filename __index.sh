@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## note: this file should imported in ~/.zprofile 
-export PATH_CLI_UTILS='/Users/VJONA/code/cli-utils'
+export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils/__index.sh"
 
 ############################################################
 ##################### pod utils ############################

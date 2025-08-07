@@ -15,8 +15,14 @@ from helpers import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
 
 # -------- Configs -------- #
 
-MODEL_NAME = "llama3"
+# MODEL_NAME = "llama3"
 # MODEL_NAME = "qwen2.5:7b-instruct-q4_K_M"
+MODEL_NAME = "yi:9b-chat-v1.5-q6_K"
+
+# TRY: Hermes 2 Pro q5_K
+# TRY: MythoMax-L2
+# TRY?: OpenChat 3.6
+
 
 # ------- variable config ------- #
 #  should be in flow or param
@@ -193,23 +199,35 @@ def cut_clip(input_path: str, output_path: str, start: float, end: float):
 
 def get_prompt(transcript_chuck:list) -> str:
     simplifiedTranscript = "\n".join([f"({i['start']}-{i['end']}): {i['text']}" for i in transcript_chuck])
-#     prompt = f"""
-# You are given a podcast transcript. Find 1-3 highlights, each between 5-20 seconds long.
+    
+    return  f"""
+You are an expert video editor for viral podcast clips.
 
-# Use only the sentence boundaries provided.
+You are given a chunk of podcast transcript with precise timestamps. Your task is to identify **0 to 4 emotionally or intellectually impactful highlights**. Each highlight should:
+- Be between 10 and 25 seconds long
+- Contain meaningful insight, emotional depth, humor, tension, or dramatic storytelling
+- Start and end on complete thoughts (don't cut mid-sentence)
 
-# Return a JSON array of [start, end] timestamps from the "start" of the first sentence to the "end" of the last.
+**Input format (timestamped transcript):**
+([start_time]-[end_time]): Spoken text
 
-# Example:
-# [[0.123, 18.912], [50.112, 70.554]]
+**Expected output:**
+A JSON array of [start_time, end_time] pairs — only include the highlights.
+- Times should match those in the transcript
+- Return **only** the array, with no extra comments
 
-# Transcript:
-# ```json
-# {json.dumps(simplifiedTranscript)}
-# ```
-# """
+**Example output with 2 highlights:**
+[[123.1, 140.3], [325.2, 347.9]]
 
-    prompt = f"""
+**Example output with 0 highlights:**
+[]
+
+Transcript:
+```json
+{simplifiedTranscript}
+```
+"""
+    return f"""
 You are given a podcast transcript with timestamps in the following format:
 ([start_time]-[end_time]): 'Spoken sentence.'
 
@@ -227,15 +245,13 @@ Input transcript:
 {simplifiedTranscript}
 ```
 
-Your task: extract 0-4 interesting highlights from the transcript (5-15s each) and return only a JSON array of [start_time, end_time] pairs.
+Your task: extract 0 to 4 interesting highlights from the transcript (10-25s each) and return only a JSON array of [start_time, end_time] pairs.
 
 Example output for 3 highlight:
 [[10.123, 25.912], [50.112, 70.554], [80.31, 86.209]]
 or 0 highlights:
 []
 """
-
-    return prompt
 
 
 

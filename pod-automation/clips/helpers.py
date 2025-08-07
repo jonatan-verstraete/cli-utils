@@ -1,4 +1,5 @@
 from pathlib import Path
+import os, json
 
 # ------------------------------- #
 # ----------- consts ------------ #
@@ -8,16 +9,17 @@ DIR_PROJECT = f"{Path(__file__).resolve().parent.parent}/clips"
 DIR_CACHE = f"{DIR_PROJECT}/cache"
 DIR_OUTPUT = f"{DIR_PROJECT}/output"
 
+os.makedirs(DIR_CACHE, exist_ok=True)
+os.makedirs(DIR_OUTPUT, exist_ok=True)
+
 
 # ------------------------------- #
 # ------------ Utils ------------ #
 # ------------------------------- #
-import os, json
 from time import time, gmtime, strftime
 
 
 def load_cache(file_path: str) -> str:
-    os.makedirs(DIR_CACHE, exist_ok=True)
     if os.path.exists(file_path):
         print(f"[+] Loaded cache from '{file_path}'")
         with open(file_path, 'r') as f:
@@ -25,7 +27,6 @@ def load_cache(file_path: str) -> str:
     return ''
 
 def save_cache(file_path: str, content: any, append=False) -> None:
-    os.makedirs(DIR_CACHE, exist_ok=True)
     with open(file_path, 'a' if append else 'w') as f:
         json.dump(content, f)
     print(f"[+] Saved cache to '{file_path}'")
