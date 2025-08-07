@@ -2,11 +2,12 @@ import os, json, subprocess, re
 from pathlib import Path
 import whisperx, ollama
 
-from typing import TypedDict, List, Tuple
+from typing import List
 
 from helpers import load_cache, save_cache, timer, log, now
 from helpers import Transcript, Segments, ClipTimestamp
 from helpers import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
+
 
 # LEARN
 # - https://dev.to/saranshabd/python-w-strict-typechecker-3l7g
@@ -23,19 +24,22 @@ MODEL_NAME = "yi:9b-chat-v1.5-q6_K"
 # TRY: MythoMax-L2
 # TRY?: OpenChat 3.6
 
+# -uncensored
 
 # ------- variable config ------- #
 #  should be in flow or param
-arg_current_guest_name="Mark Coleman".lower().replace(' ', '-') or "undefined"
-arg_video_path=f'{DIR_PROJECT}/markColeman2.mp4'
+arg_video_path=f'{DIR_PROJECT}/pod mark Coleman.mp4'
+arg_video_path=f'{DIR_PROJECT}/pod car dude.mp4'
+
+guest_name=Path(arg_video_path).name.split('.mp4')[0] or "Unknown Guest"
 
 
-use_cached_transcription=True # won't redo transcribe
+use_cached_transcription=False # won't redo transcribe
 used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
 
 # -------- Main functions -------- #
 def transcribe_with_whisperx() -> Transcript:
-    path_transcript= f"{DIR_CACHE}/{arg_current_guest_name}.json"
+    path_transcript= f"{DIR_CACHE}/{guest_name}.json"
 
     if use_cached_transcription and os.path.exists(path_transcript):
         log(f"[+] Using cached 'transcript'")
@@ -44,19 +48,18 @@ def transcribe_with_whisperx() -> Transcript:
     timer.start('T')
     log(f"[+] Starting transcribing video: '{arg_video_path}'...")
     # model = whisperx.load_model("large-v3", device="cpu", compute_type="int8") 
-    model = whisperx.load_model("small.en", device="cpu", compute_type="int8") 
-    
-    
+    model = whisperx.load_model("small.en", device="cpu", compute_type="int8")
     audio = whisperx.load_audio(arg_video_path)
-    result = model.transcribe(audio, batch_size=16, language="en")
+    transcription = model.transcribe(audio, batch_size=16, language="en")
 
-    log("[+] Performing transcription word-level alignment...")
-    model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu") # result["language"]
-    result = whisperx.align(result["segments"], model_a, metadata, audio, device="cpu")
-
-    save_cache(path_transcript, result)
-    log(f"[+] Transcript finished in {timer.end('T')}")
-    return result
+    # log("[+] Performing transcription word-level alignment...")
+    # model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu")
+    # transcription = whisperx.align(transcription["segments"], model_a, metadata, audio, device="cpu")
+    
+    save_cache(path_transcript, transcription)
+    total_duration = transcription['segments'][-1]['end'] - transcription["segments"][0]["start"]
+    log(f"[+] Transcript finished in {timer.end('T')}. Total video duration: {total_duration}")
+    return transcription
 
 
 def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
@@ -69,26 +72,47 @@ def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
         timer.start('Q')
         prompt = get_prompt(transcript_chuck)
         chat_response = ollama.chat(
-                model=f"{MODEL_NAME}", # -uncensored
+                model=f"{MODEL_NAME}", 
                 messages=[
-                    {'role': 'system','content': "You are a podcast clip extractor. Your job is to select highlights from a transcript of a user defined length. Return only a JSON array of [start, end] timestamps. No markdown. No explanations."},
+                    # {'role': 'system','content': "You are a professional podcast clip editor. Your job is to extract 0-4 emotionally or intellectually powerful highlights from a transcript. Return only a JSON array of [start, end] timestamp pairs. No markdown, no explanation, no text outside the array."},
+                    # {'role': 'system','content': "You are a professional podcast clip editor. Your job is to extract 0-4 emotionally or intellectually powerful highlights from a transcript. Think carefully and consider what sections are meaningful, emotional, or stand out. But return ONLY the final output: a JSON array of [start_time, end_time] pairs."},
+                     {
+                        'role': 'system',
+                        'content': (
+                            "You are a professional podcast clip editor. Your job is to extract 0-4 emotionally or intellectually powerful highlights from a transcript. "
+                            "Each highlight should be 10-25 seconds long and make sense on its own. "
+                            "Return only a JSON array of [start_time, end_time] pairs. No markdown, no explanations."
+                        )
+                    },
                     {"role": "user", "content": prompt}
                 ], 
-                options={"format": "json", "temperature": 0.3, "top_p": 0.8, "top_k": 20}
+                options={"format": "json", 
+                         # creativity
+                        "temperature": 0.5, 
+                        # Allows the model to sample from a wider probability mass — helps with varied but still relevant results.
+                        "top_p": 0.9, 
+                        # 	Reasonable — you could also try omitting it (defaults tend to work well), or go up to 40 to let it explore slightly more options.
+                        # "top_k": 20
+                        "top_k": 40,
+                        # "repeat_penalty": 1.3,
+                        # "repeat_last_n": 64,
+                        # "num_predict": 256,
+                }
         )
-        
         response = chat_response.message.content
-        log(f"[+] Query of '{len(prompt)}' tokens' took: {timer.end('Q')}")
+        log(f"[+] Query of {len(prompt)} characters, took: {timer.end('Q')}")
     
     try:
         start = response.find("[")
         end = response.rfind("]") + 1
-        parsed = json.loads(response[start:end])
-        if not used_cached_llm_output:
-            log(f"[+] Successfully parsed '{parsed}' out of: {response}")
+        # make sure to have [[int, int]]
+        parsed = [[int(sec[0]), int(sec[1])] for sec in json.loads(response[start:end])]
+        # if not used_cached_llm_output:
+        #     log(f"[+] Successfully parsed '{parsed}' out of: {response}")
         return parsed
     except Exception as e:
-        log(f"[ERR] Failed to parse LLM output:  '{response}' with error: {e}")
+        short_response = (response.replace('\n', '').replace('  ', ''))[:100]
+        log(f"[ERR] Failed to parse LLM output:  '{short_response}...' with error: {e}")
         return []
 
 
@@ -110,7 +134,7 @@ def main():
  
     # for each chuck we prompt to LLM to select clips
     for idx, chunk in enumerate(chunks):
-        log(f"[+] Processing: [Chunk {idx+1}/{len(chunks)}]")
+        log(f"[+] Processing Chunk: {idx+1}/{len(chunks)}...")
         llm_clips = prompt_llama3_for_clips(chunk)
         for clip in llm_clips:
             clips = get_clips_by_timestamps(segments, clip)
@@ -122,19 +146,24 @@ def main():
         return
 
     log(f"[+] Cutting {len(all_clips)} clips...")
-    clip_prefix= f"clip-{MODEL_NAME}"
-    cip_suffix = re.sub('[^0-9]','', now())
+    clip_prefix= f"{guest_name}_{re.sub('[^0-9]','', now()) }"
+    cip_suffix = f"{MODEL_NAME}"
     for i, clips in enumerate(all_clips):
         try:
-            path_clip= f"{DIR_OUTPUT}/{clip_prefix}-{str(i)}-{cip_suffix}.mp4"
+            path_clip= f"{DIR_OUTPUT}/{clip_prefix}_clip-{str(i)}_{cip_suffix}.mp4"
             start_time = clips[0]['start']
             end_time = clips[-1]['end']
             cut_clip(arg_video_path, path_clip, start_time, end_time)
         except Exception as e:
             log(f"[ERR] Failed to cut clip [{str(i)}/{str(len(all_clips))}]: {json.dumps(e)}")            
 
+
     with open(os.path.join(DIR_OUTPUT, "metadata.json"), 'w') as f:
-        json.dump(all_clips, f, indent=2)
+        metadata_json = {
+            'texts': [ " ".join([i['text'] for i in section]) for section in all_clips],
+            'clips': all_clips,
+        }
+        json.dump(metadata_json, f, indent=2)
 
     log(f"[v] Done! Saved clips to: {DIR_OUTPUT}. Total time: {timer.end('A')}")
 
@@ -199,7 +228,40 @@ def cut_clip(input_path: str, output_path: str, start: float, end: float):
 
 def get_prompt(transcript_chuck:list) -> str:
     simplifiedTranscript = "\n".join([f"({i['start']}-{i['end']}): {i['text']}" for i in transcript_chuck])
-    
+    return  f"""
+You are an expert video editor for viral podcast clips.
+
+You are given a chunk of podcast transcript with precise timestamps. Your task is to identify 0 to 4 emotionally or intellectually impactful highlights. Each highlight should:
+- Be between 10 and 25 seconds long
+- Contain meaningful insight, emotional depth, humor, tension, or dramatic storytelling
+- Start and end on complete thoughts (don't cut mid-sentence)
+- Be **self-contained**: the clip should make sense on its own without needing additional context
+
+Avoid selecting punchlines or conclusions without the setup — each highlight must include enough context to be understood independently.
+
+**Input format (timestamped transcript):**
+([start_time]-[end_time]): Spoken text
+
+**Expected output:**
+A JSON array of [start_time, end_time] pairs — only include the highlights.
+- Times must match those in the transcript
+- Return ONLY the array, with no extra comments
+
+If **no suitable highlights** are found in the transcript, confidently return an empty array: []
+Do not force a result if nothing meaningful fits the criteria.
+
+**Example output with 2 highlights:**
+[[123.1, 140.3], [325.2, 347.9]]
+
+**Example output with 0 highlights:**
+[]
+
+Transcript:
+```json
+{simplifiedTranscript}
+```
+"""
+
     return  f"""
 You are an expert video editor for viral podcast clips.
 
