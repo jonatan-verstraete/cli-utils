@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## note: this file should imported in ~/.zprofile 
-export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils/__index.sh"
+export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils"
 
 ############################################################
 ##################### pod utils ############################
@@ -22,7 +22,7 @@ download-spotify() {
 
 
 download-yt() {
-    $PATH_CLI_UTILS/yt-dlp_macos "$@"
+    $PATH_CLI_UTILS/yt-dlp_macos -x --audio-format mp3 --audio-quality 0 "$@"
 }
 
 

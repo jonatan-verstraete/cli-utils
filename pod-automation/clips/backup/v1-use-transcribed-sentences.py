@@ -34,14 +34,15 @@ arg_video_path=f'{DIR_PROJECT}/pod car dude.mp4'
 guest_name=Path(arg_video_path).name.split('.mp4')[0] or "Unknown Guest"
 
 
-use_cached_transcription=False # won't redo transcribe
-used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
+sys_cached_transcript=False # won't redo transcribe
+sys_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
+sys_skip_clips_output=False
 
 # -------- Main functions -------- #
 def transcribe_with_whisperx() -> Transcript:
     path_transcript= f"{DIR_CACHE}/{guest_name}.json"
 
-    if use_cached_transcription and os.path.exists(path_transcript):
+    if sys_cached_transcript and os.path.exists(path_transcript):
         log(f"[+] Using cached 'transcript'")
         return load_cache(path_transcript)
 
@@ -52,9 +53,9 @@ def transcribe_with_whisperx() -> Transcript:
     audio = whisperx.load_audio(arg_video_path)
     transcription = model.transcribe(audio, batch_size=16, language="en")
 
-    log(f"[+] Performing transcription word-level alignment (transcribe took {timer.get('T')})...")
-    model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu")
-    transcription = whisperx.align(transcription["segments"], model_a, metadata, audio, device="cpu")
+    # log("[+] Performing transcription word-level alignment...")
+    # model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu")
+    # transcription = whisperx.align(transcription["segments"], model_a, metadata, audio, device="cpu")
     
     save_cache(path_transcript, transcription)
     total_duration = transcription['segments'][-1]['end'] - transcription["segments"][0]["start"]
@@ -63,7 +64,7 @@ def transcribe_with_whisperx() -> Transcript:
 
 
 def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
-    if used_cached_llm_output:
+    if sys_cached_llm_output:
         log(f"[+] Using cached 'llm_output'")
         response = "[[0.0, 18.912], [289.051, 330.251]]"
         response = "[[41.548, 56.737], [155.051, 165.635], [289.051, 298.582]]"
@@ -107,7 +108,7 @@ def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
         end = response.rfind("]") + 1
         # make sure to have [[int, int]]
         parsed = [[int(sec[0]), int(sec[1])] for sec in json.loads(response[start:end])]
-        # if not used_cached_llm_output:
+        # if not sys_cached_llm_output:
         #     log(f"[+] Successfully parsed '{parsed}' out of: {response}")
         return parsed
     except Exception as e:
@@ -144,6 +145,10 @@ def main():
     if not all_clips:
         log("[ERR] No valid clips found.")
         return
+
+    if sys_skip_clips_output:
+        log(f"[v] Early return. Skipping clips")
+        return 
 
     log(f"[+] Cutting {len(all_clips)} clips...")
     clip_prefix= f"{guest_name}_{re.sub('[^0-9]','', now()) }"

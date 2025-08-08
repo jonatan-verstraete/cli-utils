@@ -60,6 +60,12 @@ class timer:
         elapsed = time() - start_time
         return f"{elapsed:.2f}sec"
 
+    @classmethod
+    def get(cls, name: str) -> str:
+        start_time = cls._timers[name]
+        elapsed = time() - start_time
+        return f"{elapsed:.2f}sec"
+
 
     
 # ------------------------------- #
