@@ -1,26 +1,28 @@
+# LEARN
+# - https://dev.to/saranshabd/python-w-strict-typechecker-3l7g
+# - https://www.linkedin.com/pulse/demystifying-llm-quantization-suffixes-what-q4km-q80-q6k-paul-ilves-i0yvf
+
+
+
 import os, json, subprocess, re
 from pathlib import Path
 import whisperx, ollama
 
 from typing import List
 
-from helpers import load_cache, save_cache, timer, log, now
-from helpers import Transcript, Clip, ClipTimestamp
-from helpers import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
+from utils import load_cache, save_cache, timer, log, now
+from utils import Transcript, Clip, ClipTimestamp
+from utils import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
 
-
-# LEARN
-# - https://dev.to/saranshabd/python-w-strict-typechecker-3l7g
-# - https://www.linkedin.com/pulse/demystifying-llm-quantization-suffixes-what-q4km-q80-q6k-paul-ilves-i0yvf
 
 
 # -------- Configs -------- #
 
-# MODEL_NAME = "llama3"
-# MODEL_NAME = "qwen2.5:7b-instruct-q4_K_M"
-MODEL_NAME = "yi:9b-chat-v1.5-q6_K"
+# MODEL_NAME = "llama3" # no-long-context, mehmeh-quality
+# MODEL_NAME = "qwen2.5:7b-instruct-q4_K_M" # meh-quality-clips
+MODEL_NAME = "yi:9b-chat-v1.5-q6_K" # +long context, meh_ok-quality, 
+MODEL_NAME = "spooknik/hermes-2-pro-mistral-7b:q8" # ..
 
-# TRY: Hermes 2 Pro q5_K
 # TRY: MythoMax-L2
 # TRY?: OpenChat 3.6
 
@@ -34,28 +36,26 @@ arg_video_path=f'{DIR_PROJECT}/pod car dude.mp4'
 guest_name=Path(arg_video_path).name.split('.mp4')[0] or "Unknown Guest"
 
 
-sys_cached_transcript=False # won't redo transcribe
-sys_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
-sys_skip_clips_output=False
+use_cached_transcription=False # won't redo transcribe
+used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
 
 # -------- Main functions -------- #
 def transcribe_with_whisperx() -> Transcript:
     path_transcript= f"{DIR_CACHE}/{guest_name}.json"
 
-    if sys_cached_transcript and os.path.exists(path_transcript):
+    if use_cached_transcription and os.path.exists(path_transcript):
         log(f"[+] Using cached 'transcript'")
         return load_cache(path_transcript)
 
     timer.start('T')
     log(f"[+] Starting transcribing video: '{arg_video_path}'...")
-    # model = whisperx.load_model("large-v3", device="cpu", compute_type="int8") 
     model = whisperx.load_model("small.en", device="cpu", compute_type="int8")
     audio = whisperx.load_audio(arg_video_path)
     transcription = model.transcribe(audio, batch_size=16, language="en")
 
-    # log("[+] Performing transcription word-level alignment...")
-    # model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu")
-    # transcription = whisperx.align(transcription["segments"], model_a, metadata, audio, device="cpu")
+    log(f"[+] Performing transcription word-level alignment (transcribe took {timer.get('T')})...")
+    model_a, metadata = whisperx.load_align_model(language_code='en', device="cpu")
+    transcription = whisperx.align(transcription["segments"], model_a, metadata, audio, device="cpu")
     
     save_cache(path_transcript, transcription)
     total_duration = transcription['segments'][-1]['end'] - transcription["segments"][0]["start"]
@@ -64,7 +64,7 @@ def transcribe_with_whisperx() -> Transcript:
 
 
 def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
-    if sys_cached_llm_output:
+    if used_cached_llm_output:
         log(f"[+] Using cached 'llm_output'")
         response = "[[0.0, 18.912], [289.051, 330.251]]"
         response = "[[41.548, 56.737], [155.051, 165.635], [289.051, 298.582]]"
@@ -108,7 +108,7 @@ def prompt_llama3_for_clips(transcript_chuck: list) -> List[ClipTimestamp]:
         end = response.rfind("]") + 1
         # make sure to have [[int, int]]
         parsed = [[int(sec[0]), int(sec[1])] for sec in json.loads(response[start:end])]
-        # if not sys_cached_llm_output:
+        # if not used_cached_llm_output:
         #     log(f"[+] Successfully parsed '{parsed}' out of: {response}")
         return parsed
     except Exception as e:
@@ -146,10 +146,6 @@ def main():
         log("[ERR] No valid clips found.")
         return
 
-    if sys_skip_clips_output:
-        log(f"[v] Early return. Skipping clips")
-        return 
-
     log(f"[+] Cutting {len(all_clips)} clips...")
     clip_prefix= f"{guest_name}_{re.sub('[^0-9]','', now()) }"
     cip_suffix = f"{MODEL_NAME}"
@@ -177,7 +173,7 @@ def main():
 
 # -------- Helpers -------- #
 
-def chunk_by_time(segments:Clip, minutes:int=10, overlap_seconds:int=60):
+def chunk_by_time(segments:Clip, minutes:int=10, overlap_seconds:int=60) -> List[Clip]:
     """
     function is used to chuck the transcribed words into sections (10min by default) with some overlap.
     This is used to feed as chucked contexts to the LLM.
@@ -267,71 +263,7 @@ Transcript:
 ```
 """
 
-    return  f"""
-You are an expert video editor for viral podcast clips.
-
-You are given a chunk of podcast transcript with precise timestamps. Your task is to identify **0 to 4 emotionally or intellectually impactful highlights**. Each highlight should:
-- Be between 10 and 25 seconds long
-- Contain meaningful insight, emotional depth, humor, tension, or dramatic storytelling
-- Start and end on complete thoughts (don't cut mid-sentence)
-
-**Input format (timestamped transcript):**
-([start_time]-[end_time]): Spoken text
-
-**Expected output:**
-A JSON array of [start_time, end_time] pairs — only include the highlights.
-- Times should match those in the transcript
-- Return **only** the array, with no extra comments
-
-**Example output with 2 highlights:**
-[[123.1, 140.3], [325.2, 347.9]]
-
-**Example output with 0 highlights:**
-[]
-
-Transcript:
-```json
-{simplifiedTranscript}
-```
-"""
-    return f"""
-You are given a podcast transcript with timestamps in the following format:
-([start_time]-[end_time]): 'Spoken sentence.'
-
-Your task is to identify 0 to 4 interesting highlights from the transcript. Each highlight should be:
-- Approximately 5 to 20 seconds long (based on timestamps).
-- Selected based on textual interest or significance
-
-Return your answer as a 2D JSON array, where each sub-array contains the start time of the first sentence and the end time of the last sentence in the highlight.
-
-Expected output format:
-[number, number][]
-
-Input transcript:
-```json
-{simplifiedTranscript}
-```
-
-Your task: extract 0 to 4 interesting highlights from the transcript (10-25s each) and return only a JSON array of [start_time, end_time] pairs.
-
-Example output for 3 highlight:
-[[10.123, 25.912], [50.112, 70.554], [80.31, 86.209]]
-or 0 highlights:
-[]
-"""
-
 
 
 if __name__ == "__main__":
     main()
-    # if len(sys.argv) != 2:
-    #     print("Usage: pod-clips path/to/video.mp4")
-    #     sys.exit(1)
-
-    # video_file = sys.argv[1]
-    # main(video_file)
-
-
-
-
-

@@ -92,7 +92,8 @@ class Transcript(TypedDict):
     word_segments: List[WordSegment]
 
 ClipTimestamp = Tuple[float, float]
-Segments = List[Segment]
+Clip = List[Segment]
+Clips = List[Clip]
 
 
 # ---------- Run time ----------- #
