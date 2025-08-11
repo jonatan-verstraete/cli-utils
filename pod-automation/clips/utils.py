@@ -9,6 +9,8 @@ DIR_PROJECT = f"{Path(__file__).resolve().parent.parent}/clips"
 DIR_CACHE = f"{DIR_PROJECT}/cache"
 DIR_OUTPUT = f"{DIR_PROJECT}/output"
 
+FILE_METADATA=f"{DIR_OUTPUT}/metadata.json"
+
 os.makedirs(DIR_CACHE, exist_ok=True)
 os.makedirs(DIR_OUTPUT, exist_ok=True)
 
@@ -71,11 +73,10 @@ class timer:
 # ------------------------------- #
 # ----------- Typing ------------ #
 # ------------------------------- #
-from typing import TypedDict, List, Tuple
-from pydantic import BaseModel
+from typing import TypedDict, List
 
 
-class WordSegment(TypedDict):
+class Word(TypedDict):
     word: str
     start: float
     end: float
@@ -85,31 +86,34 @@ class Segment(TypedDict):
     start: float
     end: float
     text: str
-    words: List[WordSegment]
+    words: List[Word]
 
 class Transcript(TypedDict):
     segments: List[Segment]
-    word_segments: List[WordSegment]
+    word_segments: List[Word]
 
-ClipTimestamp = Tuple[float, float]
+# a list of multiple parts of a single clip
 Clip = List[Segment]
-Clips = List[Clip]
+AllClips = List[Clip]
 
 
-# ---------- Run time ----------- #
-class WordSegmentModel(BaseModel):
-    word: str
-    start: float
-    end: float
-    score: float
+PostQueryResult = List[Word]
 
-class SegmentModel(BaseModel):
-    start: float
-    end: float
-    text: str
-    words: List[WordSegmentModel]
 
-class TranscriptModel(BaseModel):
-    segments: List[SegmentModel]
-    word_segments: List[WordSegmentModel]
-    
+
+
+LLM_OPTIONS={
+    "best_b": {
+        "format": "json", 
+        # creativity
+        "temperature": 0.5, 
+        # Allows the model to sample from a wider probability mass — helps with varied but still relevant results.
+        "top_p": 0.9, 
+        # 	Reasonable — you could also try omitting it (defaults tend to work well), or go up to 40 to let it explore slightly more options.
+        # "top_k": 20
+        "top_k": 40,
+        # "repeat_penalty": 1.3,
+        # "repeat_last_n": 64,
+        # "num_predict": 256,
+    }
+}

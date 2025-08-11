@@ -1,7 +1,7 @@
 import whisperx, os
 
 from utils import load_cache, save_cache, timer, log, now
-from utils import Transcript, Clip, ClipTimestamp
+from utils import Transcript
 from utils import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
 
 def transcribe_with_whisperx(video_path:str, guest_name:str, use_cache=False) -> Transcript:

@@ -1,6 +1,6 @@
-from utils import Clip, List
+from utils import Clip, AllClips
 
-def chunk_by_time(segments:Clip, minutes:int=10, overlap_seconds:int=60) -> List[Clip]:
+def chunk_by_time(segments:Clip, minutes:int=10, overlap_seconds:int=60) -> AllClips:
     """
     function is used to chuck the transcribed words into sections (10min by default) with some overlap.
     This is used to feed as chucked contexts to the LLM.

@@ -7,13 +7,14 @@
 from pathlib import Path
 import os, re
 from utils import log, now
-from utils import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
+from utils import DIR_PROJECT, LLM_OPTIONS
+from utils import List, PostQueryResult
 
 from fn_chuck import chunk_by_time
 from fn_query import query_fulltext 
+from fn_save_clips import cut_and_save_clips, output_text
 from fn_transcribe import transcribe_with_whisperx
-from fn_post_processing import fuzzy_map_text_to_timestamps_simple, post_clean_obvious_clips, post_query_filter_relevant_clip
-
+from fn_post_processing import post_clean_obvious_clips, post_query_filter_relevant_clip
 
 
 # -------- Configs -------- #
@@ -24,8 +25,7 @@ MODEL_NAME = "yi:9b-chat-v1.5-q6_K" # +long context, meh_ok-quality,
 # MODEL_NAME = "spooknik/hermes-2-pro-mistral-7b:q8" # ..
 
 
-print(re.sub('[^\w','', MODEL_NAME))
-exit()
+
 
 # TRY: MythoMax-L2
 # TRY?: OpenChat 3.6
@@ -40,52 +40,48 @@ arg_video_path=f'{DIR_PROJECT}/pod car dude.mp4'
 guest_name=Path(arg_video_path).name.split('.mp4')[0] or "Unknown Guest"
 
 
-use_cached_transcription=False # won't redo transcribe
-used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
+use_cached_transcription=True # won't redo transcribe
+# used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
 
 
 def main():
     assert os.path.exists(arg_video_path), f"File not found: {arg_video_path}"
     log('', 2)
-    log(f"Start: {now()}")
-    log(f"[+] Start processing for '{guest_name}'")    
+    log(f"{now()}: Start processing for '{guest_name}'")
+    # Step 1 — transcribe video
     transcription = transcribe_with_whisperx(arg_video_path, guest_name, use_cached_transcription)
-    word_segments = transcription['word_segments']
+    # word_segments = transcription['word_segments']
+    segments = transcription['segments']
+    
+    
+    # Step 2 — Query the chunks
+    all_results: List[PostQueryResult] = []
+    chunks = chunk_by_time(segments, minutes=10)
+    chunks = [chunks[5]]
+    for i, chunk in enumerate(chunks):
+        log(f"[+] Processing chuck: {i}/{len(chunks)}")
+        results = query_fulltext(chunk, MODEL_NAME, LLM_OPTIONS['best_b'], True)
+        if len(results):
+            # merge new clips into main clips array
+            all_results.extend(results)
+            
+        
+    # print(' ') 
+    # print(' ')
+    # print(all_clips)
+    # print(' ')
+    # print(' ')
 
-    chunks = chunk_by_time(word_segments, minutes=10)
 
-    all_clips = []
-    for chunk in chunks:
-        # Step 1 — Query full text
-        raw_text = " ".join([w['text'] for w in chunk])
-        highlights = query_fulltext(raw_text)  # returns list of strings
+    # Step 3 — Post process output (middlewares)
+    post_results = post_clean_obvious_clips(all_results)
+    # post_results = post_rank_top(all_results, 10)
+    # post_results = post_query_filter_relevant_clip(post_results)
 
-        # Step 2 — Map back to timestamps
-        mapped = []
-        for h in highlights:
-            res = fuzzy_map_text_to_timestamps_simple(h, word_segments)
-            if res:
-                mapped.append(res)
-
-        # Step 3 — Basic cleaning
-        mapped = post_clean_obvious_clips(mapped)
-        all_clips.extend(mapped)
-
-    # Step 4 — Optional ranking
-    # all_clips = post_rank_top(all_clips, 10)
-
-    # Step 5 — Optional LLM-based relevance filtering
-    all_clips = post_query_filter_relevant_clip(all_clips)
-
-    # Step 6 — Final clean
-    all_clips = post_clean_obvious_clips(all_clips)
-
-    # Step 7 — Save to file (no cutting yet)
-    out_path = Path(DIR_OUTPUT) / f"output_{MODEL_NAME.replace(':','_')}_{guest_name}.txt"
-    with open(out_path, "w") as f:
-        for start, end, text in all_clips:
-            f.write(f"[{start:.2f} - {end:.2f}] {text}\n")
-    log(f"[v] Done! Saved output to {out_path}")
+    # Step 4 — Output results
+    # cut_and_save_clips(all_clips, arg_video_path, f"{re.sub('\W','', MODEL_NAME)}_{guest_name}")
+    output_text(post_results, re.sub('\W','', MODEL_NAME))
+  
     
 
 
