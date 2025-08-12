@@ -5,4 +5,4 @@
 # launchctl load ~/Library/LaunchAgents/com.custom.background.plist
 # launchctl unload ~/Library/LaunchAgents/com.custom.background.plist
 
-python3 ~/code/cli-utils/script-setRandomBackground.py "$HOME/Documents/ai-quotes"
+python3 "$HOME/Documents/GitHub/cli-utils/script-setRandomBackground.py" "$HOME/Documents/ai-quotes"

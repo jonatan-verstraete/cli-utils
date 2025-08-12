@@ -97,7 +97,7 @@ Clip = List[Segment]
 AllClips = List[Clip]
 
 
-PostQueryResult = List[Word]
+PostQueryResults = List[List[Word]]
 
 
 

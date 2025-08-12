@@ -8,7 +8,7 @@ from pathlib import Path
 import os, re
 from utils import log, now
 from utils import DIR_PROJECT, LLM_OPTIONS
-from utils import List, PostQueryResult
+from utils import List, PostQueryResults
 
 from fn_chuck import chunk_by_time
 from fn_query import query_fulltext 
@@ -55,7 +55,7 @@ def main():
     
     
     # Step 2 — Query the chunks
-    all_results: List[PostQueryResult] = []
+    all_results: PostQueryResults = []
     chunks = chunk_by_time(segments, minutes=10)
     chunks = [chunks[5]]
     for i, chunk in enumerate(chunks):

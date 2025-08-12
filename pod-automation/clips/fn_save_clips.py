@@ -1,8 +1,8 @@
 import json, subprocess, re
-from utils import AllClips, log, now
+from utils import PostQueryResults, log, now
 from utils import DIR_OUTPUT, FILE_METADATA
 
-def cut_and_save_clips(all_clips: AllClips, src_video_path: str, clip_file_name:str = ""):
+def cut_and_save_clips(all_clips: PostQueryResults, src_video_path: str, clip_file_name:str = ""):
     clip_prefix= f"{clip_file_name}_{re.sub('[^0-9]','', now()) }".replace('')
     
     for i, clips in enumerate(all_clips):
@@ -16,6 +16,7 @@ def cut_and_save_clips(all_clips: AllClips, src_video_path: str, clip_file_name:
 
 
     with open(FILE_METADATA, 'w') as f:
+        # TODO:  PostQueryResults
         metadata_json = {
             'texts': [ " ".join([i['text'] for i in section]) for section in all_clips],
             'clips': all_clips,
@@ -25,11 +26,15 @@ def cut_and_save_clips(all_clips: AllClips, src_video_path: str, clip_file_name:
 
 
 
-def output_text(all_clips: AllClips, name:str):
+def output_text(results: PostQueryResults, name:str):
     out_path= f"{DIR_OUTPUT}/output_{name}.txt"
     with open(out_path, "w") as f:
-        for start, end, text in all_clips:
+        for words in results:
+            start = words[0]['start']
+            end = words[-1]['end'] 
+            text = " ".join([w['word'] for w in words])
             f.write(f"[{start:.2f} - {end:.2f}] {text}\n")
+        json.dump(results, f)
                 
 def cut_clip(input_path: str, output_path: str, start: float, end: float):
     duration = end - start
