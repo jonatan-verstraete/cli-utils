@@ -1,5 +1,5 @@
 from pathlib import Path
-import os, json
+import os, json, re
 
 # ------------------------------- #
 # ----------- consts ------------ #
@@ -19,6 +19,7 @@ os.makedirs(DIR_OUTPUT, exist_ok=True)
 # ------------ Utils ------------ #
 # ------------------------------- #
 from time import time, gmtime, strftime
+from datetime import datetime
 
 
 def load_cache(file_path: str) -> str:
@@ -38,11 +39,17 @@ def log(content: any, newlines=1) -> None:
     print(content)
     with open(f"{DIR_PROJECT}/logs.txt", 'a') as f:
         f.write('\n' * newlines)
-        f.write(str(content))
+        f.write(f"{timestamp_time()}  {str(content)}")
         # json.dump(content, f, indent=2)
 
-def now() -> str:
+def timestamp_date() -> str:
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
+
+def timestamp_time():
+    return strftime("%H:%M:%S", gmtime())
+
+def slugify(input:str, replacer="-") -> str:
+    return re.sub('\W',replacer, input)
 
 class timer:
     _timers = {}
@@ -66,6 +73,8 @@ class timer:
     def get(cls, name: str) -> str:
         start_time = cls._timers[name]
         elapsed = time() - start_time
+        if elapsed > 120:
+            return f"{(elapsed/60):.2f}min"
         return f"{elapsed:.2f}sec"
 
 

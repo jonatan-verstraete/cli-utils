@@ -1,6 +1,6 @@
 import whisperx, os
 
-from utils import load_cache, save_cache, timer, log, now
+from utils import load_cache, save_cache, timer, log
 from utils import Transcript
 from utils import DIR_PROJECT, DIR_CACHE, DIR_OUTPUT
 

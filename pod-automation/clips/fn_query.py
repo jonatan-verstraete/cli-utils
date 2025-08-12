@@ -1,7 +1,9 @@
 import json, ollama
 
-from utils import log, timer
+from utils import log, timer, load_cache, save_cache, slugify
 from utils import Clip, AllClips
+from utils import DIR_CACHE
+
 from fn_parsers import parse_fullTexts
 
 
@@ -76,14 +78,15 @@ Transcript:
     # 3 — Query LLM
     timer.start("LLM")
     content:str = ""
+    path_cache_current_prompt = f"{DIR_CACHE}/cached_output_{slugify(model_name, '')}_{slugify(raw_text[:20], '')}.txt"
     if use_cache:
-        content = json.dumps([
-            'that\'s a really good, that\'s a really good question. i want to say still right now, i think it does matter who your coach is and how you\'re being taught and how you\'re coming up. i think it does. but i think with the internet and the information age, and as the sport evolves and more coaches evolve off of the great coaches who already are now, i think that that possibly can become less prevalent in the future with just the mass spread of great coaches, right?',
-            "soccer, 20 years ago, who was the best at soccer? who was like, undeniably, okay, nobody can beat them in soccer. who is it? which country? tell me. who is it? yeah. brazil. yeah. brazil. yeah. brazil. brazil. brazil. yeah. brazil.",
-            'but yeah, well, where does the future hold for you, charlie? where are you going? what you want to open up more academies, you happy where you\'re at? what are you doing? what is the future hold for you right now? future for me is to take care of my own family and have a great academy that people can have a great base in and progress through their whole martial arts career. particularly kids, you know, in south florida here, i\'m building one of the biggest kids programs in south florida. we have over a hundred kids in our program already. so it just goes to show you that i have a great system. i also have a great curriculum and i\'ve changed it a lot in the past couple of years to fit the new mindset and the new cycle of children, the new generation on how to really help them build up who they are. our attention speaks for itself.',
-            "yeah. well, no, that's cool. and that's actually great that you're doing. you're inspiring the next generations, literally. and that is awesome. i mean, that's the gift that keeps on giving, as they say. it's props on that. yeah. cool, mate. well, basically, thanks for doing this, man. it was a very interesting perspective on things."
-        ]) if "does matter who your coach" in raw_text else "[]"
-    else:
+        cached = load_cache(path_cache_current_prompt)
+        if cached and isinstance(cached, list):
+            content = cached
+        else:
+            log('ERR]: query. Failed to load cached, resume with prompt.')
+            
+    if not content:
         chat_response = ollama.chat(
             model=model_name,
             messages=[
@@ -93,8 +96,8 @@ Transcript:
             options=options
         )
         content = chat_response.message.content
-
-
+        save_cache(path_cache_current_prompt, content)
+        
     log(f"[+] query_fulltext. Took {timer.end('LLM')} ({len(prompt)} chars)")
     
     return parse_fullTexts(content, chuck)

@@ -6,13 +6,15 @@ def parse_fullTexts(response: str, clip:Clip):
     """
     Converts an llm output (str) to a list of Words (aka. Word)
     """
+    reconstructed_clips: PostQueryResults = []
+    highlights: List[str] = []
     try:
         highlights = json.loads(response)
         
         if not isinstance(highlights, list):
             raise ValueError("Output not a JSON list")
         
-        highlights = [h.strip() for h in highlights if isinstance(h, str) and h.strip()]
+        highlights = [h for h in highlights if isinstance(h, str)]
         reconstructed_clips = fuzzy_map_text_to_words(highlights, clip)
         
     except Exception as e:

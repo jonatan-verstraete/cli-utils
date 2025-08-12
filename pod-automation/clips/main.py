@@ -5,8 +5,8 @@
 
 
 from pathlib import Path
-import os, re
-from utils import log, now
+import os
+from utils import log, timer, slugify
 from utils import DIR_PROJECT, LLM_OPTIONS
 from utils import List, PostQueryResults
 
@@ -23,6 +23,7 @@ from fn_post_processing import post_clean_obvious_clips, post_query_filter_relev
 # MODEL_NAME = "qwen2.5:7b-instruct-q4_K_M" # meh-quality-clips
 MODEL_NAME = "yi:9b-chat-v1.5-q6_K" # +long context, meh_ok-quality, 
 # MODEL_NAME = "spooknik/hermes-2-pro-mistral-7b:q8" # ..
+# MODEL_NAME = "qwen3:4b-thinking-2507-fp16" # insane, but slow
 
 
 
@@ -41,13 +42,14 @@ guest_name=Path(arg_video_path).name.split('.mp4')[0] or "Unknown Guest"
 
 
 use_cached_transcription=True # won't redo transcribe
-# used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
+used_cached_llm_output=False # won't redo prompts (only useful if you are testing clips)
 
 
 def main():
     assert os.path.exists(arg_video_path), f"File not found: {arg_video_path}"
     log('', 2)
-    log(f"{now()}: Start processing for '{guest_name}'")
+    log(f"Start processing pod. of '{guest_name}', using model: '{MODEL_NAME}'")
+    timer.start('@')
     # Step 1 — transcribe video
     transcription = transcribe_with_whisperx(arg_video_path, guest_name, use_cached_transcription)
     # word_segments = transcription['word_segments']
@@ -57,10 +59,10 @@ def main():
     # Step 2 — Query the chunks
     all_results: PostQueryResults = []
     chunks = chunk_by_time(segments, minutes=10)
-    chunks = [chunks[5]]
+    # chunks = [chunks[0]]
     for i, chunk in enumerate(chunks):
         log(f"[+] Processing chuck: {i}/{len(chunks)}")
-        results = query_fulltext(chunk, MODEL_NAME, LLM_OPTIONS['best_b'], True)
+        results = query_fulltext(chunk, MODEL_NAME, LLM_OPTIONS['best_b'], used_cached_llm_output)
         if len(results):
             # merge new clips into main clips array
             all_results.extend(results)
@@ -80,7 +82,8 @@ def main():
 
     # Step 4 — Output results
     # cut_and_save_clips(all_clips, arg_video_path, f"{re.sub('\W','', MODEL_NAME)}_{guest_name}")
-    output_text(post_results, re.sub('\W','', MODEL_NAME))
+    output_text(post_results, slugify(MODEL_NAME, ''))
+    print(f"[v] Finished cut! Duration: {timer.end('@')}")
   
     
 
