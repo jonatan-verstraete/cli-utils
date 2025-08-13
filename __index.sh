@@ -4,29 +4,44 @@
 export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils"
 
 ############################################################
-##################### pod utils ############################
+###################### imports #############################
 ############################################################
+
+source "$PATH_CLI_UTILS/fn-capture-output.sh"
+source "$PATH_CLI_UTILS/fn-convert-to-mp3.sh"
+source "$PATH_CLI_UTILS/fn-createpr.sh"
 
 source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 
+
+############################################################
+################# Running function $########################
+############################################################
+
+:random-bg() {
+	local URL="${1:-'$HOME/Documents/ai-quotes'}"
+	python3 "$PATH_CLI_UTILS/fn-setRandomBackground.py" $URL
+}
 
 
 ############################################################
 ######################## utils #############################
 ############################################################
 
-download-spotify() {
-    URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
+
+:download-spotify() {
+   local URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
     spotdl $URL
 }
 
 
-download-yt() {
+
+:download-yt() {
     $PATH_CLI_UTILS/yt-dlp_macos -x --audio-format mp3 --audio-quality 0 "$@"
 }
 
 
-blink() {
+:blink() {
     bash "$PATH_CLI_UTILS/blink" "$@"
 }
 

@@ -1,7 +1,7 @@
 
 
 
-cpr() {
+:cpr() {
 
   get_repo_path() {
     local github_dir="$HOME/Documents/GitHub/bricsys247"

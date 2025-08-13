@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Constant Frame Rate function - so much more
-pod-cfr() {
+:pod-cfr() {
   input_file="$1"
   shift
 

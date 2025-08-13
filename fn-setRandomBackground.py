@@ -29,7 +29,8 @@ if not files:
     exit(1)
 
 # Calculate the index based on time / 600 seconds
-time_index = int(time.time() // 600)
+# time_index = int(time.time() // 600)
+time_index = int(time.time() // 6)
 selected_index = time_index % len(files)
 wallpaper = files[selected_index]
 
