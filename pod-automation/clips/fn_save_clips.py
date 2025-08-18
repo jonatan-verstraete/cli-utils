@@ -2,27 +2,27 @@ import json, subprocess, re
 from utils import PostQueryResults, log, timestamp_date
 from utils import DIR_OUTPUT, FILE_METADATA
 
-def cut_and_save_clips(all_clips: PostQueryResults, src_video_path: str, clip_file_name:str = ""):
-    clip_prefix= f"{clip_file_name}_{re.sub('[^0-9]','', timestamp_date()) }".replace('')
+def cut_and_save_clips(results: PostQueryResults, src_video_path: str, clip_file_name:str = ""):
+    clip_prefix= f"{clip_file_name}_{re.sub('[^0-9]','', timestamp_date()) }"
     
-    for i, clips in enumerate(all_clips):
+    for i, clip in enumerate(results):
         try:
             path_clip= f"{DIR_OUTPUT}/{clip_prefix}_clip-{str(i)}.mp4"
-            start_time = clips[0]['start']
-            end_time = clips[-1]['end']
+            start_time = clip[0]['start']
+            end_time = clip[-1]['end']
             cut_clip(src_video_path, path_clip, start_time, end_time)
         except Exception as e:
-            log(f"[ERR] Failed to cut clip [{str(i)}/{str(len(all_clips))}]: {json.dumps(e)}")            
+            log(f"[err] Failed to cut clip [{str(i)}/{str(len(results))}]: {json.dumps(e)}")            
 
 
     with open(FILE_METADATA, 'w') as f:
         # TODO:  PostQueryResults
         metadata_json = {
-            'texts': [ " ".join([i['text'] for i in section]) for section in all_clips],
-            'clips': all_clips,
+            'texts': [ " ".join([i['word'] for i in section]) for section in results],
+            'clips': results,
         }
         json.dump(metadata_json, f, indent=2)
-    log(f"[v] Done! Saved output to {DIR_OUTPUT}")
+    print(f"[i] Saved clips to: {DIR_OUTPUT}")
 
 
 

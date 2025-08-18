@@ -1,38 +1,44 @@
-# Why Use `llama.cpp` (Instead of Ollama or Similar Wrappers)
+## Links
 
-## 🧠 Full Control
+- Models: https://artificialanalysis.ai/leaderboards/models?open_weights=open_source&size_class=small
+- diarization can be all local: https://github.com/pyannote/pyannote-audio
+- advanced audio detection (eg. emotions): https://medium.com/behavioral-signals-ai/intro-to-audio-analysis-recognizing-sounds-using-machine-learning-20fd646a0ec5
+
+## Why Use `llama.cpp` (Instead of Ollama or Similar Wrappers)
+
+### 🧠 Full Control
 
 - Run any `.gguf` model locally without restrictions or wrappers.
 - Choose quantization levels, context size, threading, and runtime options.
 
-## 📦 No Vendor Lock-In
+### 📦 No Vendor Lock-In
 
 - Ollama and others often use internal formats or depend on their infrastructure.
 - `llama.cpp` is fully open and portable — no hidden telemetry, full offline use.
 
-## 🚀 Max Performance (If Tuned)
+### 🚀 Max Performance (If Tuned)
 
 - Native Metal GPU acceleration on macOS (M1/M2/M3).
 - Potentially faster inference with optimized settings than pre-wrapped tools.
 
-## 🔒 Privacy & Transparency
+### 🔒 Privacy & Transparency
 
 - No automatic analytics, model fetching, or background connections.
 - Every byte of inference and config is under your control.
 
-## 🔧 Lightweight & Flexible
+### 🔧 Lightweight & Flexible
 
 - Tiny binary, minimal dependencies.
 - Easily scriptable for CLI, TUI, or integration into other tools.
 
-## 🧩 Interoperability
+### 🧩 Interoperability
 
 - Works seamlessly with other tools like:
   - LM Studio (GUI for `.gguf` models)
   - text-generation-webui (multi-backend support)
   - KoboldCPP, GPT4All, llama-cpp-python
 
-## 🛠️ Developer & Research Friendly
+### 🛠️ Developer & Research Friendly
 
 - Ideal for experimenting, benchmarking, or building your own LLM tools.
 - Active open-source community with rapid updates and support.

@@ -4,7 +4,7 @@ from utils import log, timer, load_cache, save_cache, slugify
 from utils import Clip, AllClips
 from utils import DIR_CACHE
 
-from fn_parsers import parse_fullTexts
+from fn_parsers import fuzzy_parse_fullTexts
 
 
 
@@ -46,51 +46,38 @@ Transcript:
 
 
 
-def query_fulltext(chuck: Clip, model_name: str, options: dict, use_cache=False):
-    """
-    Query an LLM with raw text from a chunk of transcript (Clip) to get highlight clips.
-    Output: Clip (subset of original chunk) or [] if none.
-
-    Steps:
-    1. Convert chunk to raw text (no timestamps)
-    2. Prompt LLM to find 0-N clips
-    3. Parse output: for each highlight, find start and end in chunk word_segments
-    4. Return list of Clip for each highlight
-    """
-
+def query_fulltext(chuck: Clip, model_name: str, options: dict, use_cache=False, retry_count = 0):
     raw_text = " ".join([seg['text'].lower() for seg in chuck])
     prompt = f"""
-You are an expert podcast highlight selector.
+    Your task is to identify impactful excerpts from the following text. 
 
-You will be given a continuous block of podcast transcript text (no timestamps). 
-Identify 0 to 4 emotionally or intellectually impactful highlights that:
-- Are between 10 and 25 seconds long
-- Make sense when viewed alone (self-contained, with enough setup and payoff)
-- Contain meaningful insight, humor, tension, or emotional impact
+    - Extract short, self-contained excerpts of exactly 30 words that are emotionally engaging or convey a key insight. 
+    - These excerpts should be clear, attention-grabbing, and meaningful on their own.
+    - The excerpts should feel impactful, exciting, thought-provoking, or funny.
 
-Return ONLY the highlighted text excerpts, as a JSON array of strings.
-If no highlights are found, return [].
+    Return ONLY the excerpts in valid JSON format, like this:
+    ["excerpt 1", "excerpt 2", "excerpt 3"]
 
-Transcript:
-\"\"\"{raw_text}\"\"\"
-"""
+    If no suitable excerpts exist, return [].
+
+    Text:
+    ```{raw_text}```
+    """ 
 
     # 3 — Query LLM
     timer.start("LLM")
     content:str = ""
     path_cache_current_prompt = f"{DIR_CACHE}/cached_output_{slugify(model_name, '')}_{slugify(raw_text[:20], '')}.txt"
     if use_cache:
-        cached = load_cache(path_cache_current_prompt)
-        if cached and isinstance(cached, list):
-            content = cached
-        else:
-            log('ERR]: query. Failed to load cached, resume with prompt.')
+        content = load_cache(path_cache_current_prompt)
+        if not content:
+            log('[ERR]: query. Failed to load cached, resume with prompt.')
             
     if not content:
         chat_response = ollama.chat(
             model=model_name,
             messages=[
-                {"role": "system", "content": "You are a professional podcast highlight extractor."},
+                {"role": "system", "content": "You are an expert at identifying impactful excerpts from text."},
                 {"role": "user", "content": prompt}
             ],
             options=options
@@ -100,6 +87,14 @@ Transcript:
         
     log(f"[+] query_fulltext. Took {timer.end('LLM')} ({len(prompt)} chars)")
     
-    return parse_fullTexts(content, chuck)
+    def retry():
+        log(f"[+] Retry query: {retry_count}")
+        query_fulltext(chuck, model_name, options, False, retry_count - 1)
+    
+    return fuzzy_parse_fullTexts(content, chuck, retry if retry_count is not 0 and use_cache is True else None)
 
     
+    
+    
+    
+

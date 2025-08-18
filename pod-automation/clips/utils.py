@@ -1,6 +1,5 @@
 from pathlib import Path
 import os, json, re
-
 # ------------------------------- #
 # ----------- consts ------------ #
 # ------------------------------- #
@@ -20,7 +19,7 @@ os.makedirs(DIR_OUTPUT, exist_ok=True)
 # ------------------------------- #
 from time import time, gmtime, strftime
 from datetime import datetime
-
+import subprocess
 
 def load_cache(file_path: str) -> str:
     if os.path.exists(file_path):
@@ -50,6 +49,9 @@ def timestamp_time():
 
 def slugify(input:str, replacer="-") -> str:
     return re.sub('\W',replacer, input)
+
+def boot_ollama():
+    subprocess.run("ollama list", shell=True, capture_output=True)
 
 class timer:
     _timers = {}
@@ -120,7 +122,7 @@ LLM_OPTIONS={
         "top_p": 0.9, 
         # 	Reasonable — you could also try omitting it (defaults tend to work well), or go up to 40 to let it explore slightly more options.
         # "top_k": 20
-        "top_k": 40,
+        # "top_k": 40,
         # "repeat_penalty": 1.3,
         # "repeat_last_n": 64,
         # "num_predict": 256,
