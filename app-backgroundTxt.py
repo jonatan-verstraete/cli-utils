@@ -7,10 +7,7 @@ import textwrap
 from datetime import datetime
 
 
-# Check if running on macOS
-if sys.platform != 'darwin':
-    print("This script is designed for macOS only.")
-    sys.exit(1)
+# running on macOS only?
 
 def read_file_content(file_path):
     if not os.path.exists(file_path):

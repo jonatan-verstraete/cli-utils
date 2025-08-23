@@ -2,14 +2,12 @@ import json, subprocess, re
 from utils import PostQueryResults, log, timestamp_date
 from utils import DIR_OUTPUT, FILE_METADATA
 
-def cut_and_save_clips(results: PostQueryResults, src_video_path: str, clip_file_name:str = ""):
-    clip_prefix= f"{clip_file_name}_{re.sub('[^0-9]','', timestamp_date()) }"
-    
+def cut_and_save_clips(results: PostQueryResults, src_video_path: str, clip_file_name:str = ""):    
     for i, clip in enumerate(results):
         try:
-            path_clip= f"{DIR_OUTPUT}/{clip_prefix}_clip-{str(i)}.mp4"
             start_time = clip[0]['start']
             end_time = clip[-1]['end']
+            path_clip= f"{DIR_OUTPUT}/clip{str(i)}_{start_time:.0f}-_{end_time:.0f}_{clip_file_name}.mp4"
             cut_clip(src_video_path, path_clip, start_time, end_time)
         except Exception as e:
             log(f"[err] Failed to cut clip [{str(i)}/{str(len(results))}]: {json.dumps(e)}")            
@@ -48,6 +46,6 @@ def cut_clip(input_path: str, output_path: str, start: float, end: float):
     ]
     try:
         subprocess.run(cmd, capture_output=True, text=True, check=True)
-        # print(f"[+] Clip '{Path(output_path).name}' saved.")
+        # print(f"[i] Clip '{Path(output_path).name}' saved.")
     except Exception as e:
         log(f"Error - Failed to cut video: {e.stderr}")

@@ -23,7 +23,7 @@ import subprocess
 
 def load_cache(file_path: str) -> str:
     if os.path.exists(file_path):
-        print(f"[+] Loaded cache from '{file_path}'")
+        print(f"[i] Loaded cache from '{file_path}'")
         with open(file_path, 'r') as f:
             return json.load(f)
     return ''
@@ -31,7 +31,7 @@ def load_cache(file_path: str) -> str:
 def save_cache(file_path: str, content: any, append=False) -> None:
     with open(file_path, 'a' if append else 'w') as f:
         json.dump(content, f)
-    print(f"[+] Saved cache to '{file_path}'")
+    print(f"[i] Saved cache to '{file_path}'")
 
 
 def log(content: any, newlines=1) -> None:
@@ -106,11 +106,7 @@ class Transcript(TypedDict):
 # a list of multiple parts of a single clip
 Clip = List[Segment]
 AllClips = List[Clip]
-
-
 PostQueryResults = List[List[Word]]
-
-
 
 
 LLM_OPTIONS={

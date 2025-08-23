@@ -1,3 +1,53 @@
+# Current AI list
+
+### ✅ Qwen3: 4B-thinking-2507-fp16
+
+- Small, smart, tuned for step-by-step logic.
+- Lightweight, efficient, solid math skills.
+- Limited world knowledge and nuance.
+
+### ✅ spooknik/hermes-2-pro-mistral-7b:q8
+
+- Mistral base with strong instruction tuning.
+- Polite, verbose, good for chat + logic.
+- A bit wordy; can overexplain.
+
+### ✅ Yi: 9B-chat-v1.5-q6_K
+
+- Sharp instruction-following, multilingual.
+- Balanced, clean responses with minimal fluff.
+- Not playful; a bit stiff in tone.
+
+### ✅ Qwen2.5: 7B-instruct-q4_K_M
+
+- Logical, structured, and fast in 4-bit.
+- Better than older Qwen at consistency.
+- Can sound dry or mechanical.
+
+### ✅ Phi-3: latest
+
+- Tiny, fast, trained on synthetic reasoning.
+- Good at short logic chains and basic math.
+- Poor memory and general knowledge.
+
+### ✅ DeepSeek-Coder: latest
+
+- Strong at code tasks, large context.
+- Precise and quiet—no fluff.
+- Not good for general chat.
+
+### ✅ LLaMA 3: latest
+
+- Strong all-rounder; great alignment.
+- Clean outputs, low hallucination.
+- Formal tone, less flexible reasoning control.
+
+### ✅ Reka Flash 3
+
+- Reasoning tags + budget = controllable CoT.
+- 32K context, trained from scratch, RLOO RLHF.
+- Ideal for logic-heavy tasks, not casual chat.
+
 ## Links
 
 - Models: https://artificialanalysis.ai/leaderboards/models?open_weights=open_source&size_class=small
