@@ -40,7 +40,6 @@ source "$PATH_CLI_UTILS/pod-automation/__index.sh"
     $PATH_CLI_UTILS/yt-dlp_macos -x --audio-format mp3 --audio-quality 0 "$1"
 }
 
-https://www.youtube.com/playlist?list=PLgw21RsMcJkqh7V9xyTts3DcpgfwvOYaJ
 
 
 :blink() {
