@@ -32,12 +32,12 @@ def fuzzy_parse_fullTexts(response: str, clip: Clip, retry) -> PostQueryResults:
             else:
                 raise ValueError("No JSON-like brackets found in response")
         except Exception as inner_e:
-            log(f"[err] fuzzy_parse_fullTexts: Failed to parse LLM output as JSON ({inner_e})")
+            log(f"[ERR] fuzzy_parse_fullTexts: Failed to parse LLM output as JSON ({inner_e})")
             return []
 
     # --- Step 2: sanitize highlights
     if not isinstance(highlights, list):
-        log(f"[err] fuzzy_parse_fullTexts: Parsed output is not a JSON list.")
+        log(f"[ERR] fuzzy_parse_fullTexts: Parsed output is not a JSON list.")
         if retry:
             retry()
         return []
@@ -66,7 +66,7 @@ def fuzzy_parse_fullTexts(response: str, clip: Clip, retry) -> PostQueryResults:
                 break
 
         if start_idx is None or end_idx is None or end_idx <= start_idx:
-            log(f"[err] fuzzy_parse_fullTexts: Could not map highlight — '{highlight_text[:30]}...'")
+            log(f"[ERR] fuzzy_parse_fullTexts: Could not map highlight — '{highlight_text[:30]}...'")
             continue
 
         reconstructed_clips.append(transcript_words[start_idx:end_idx])

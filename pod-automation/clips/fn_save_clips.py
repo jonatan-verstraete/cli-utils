@@ -10,7 +10,7 @@ def cut_and_save_clips(results: PostQueryResults, src_video_path: str, clip_file
             path_clip= f"{DIR_OUTPUT}/clip{str(i)}_{start_time:.0f}-_{end_time:.0f}_{clip_file_name}.mp4"
             cut_clip(src_video_path, path_clip, start_time, end_time)
         except Exception as e:
-            log(f"[err] Failed to cut clip [{str(i)}/{str(len(results))}]: {json.dumps(e)}")            
+            log(f"[ERR] Failed to cut clip [{str(i)}/{str(len(results))}]: {json.dumps(e)}")            
 
 
     with open(FILE_METADATA, 'w') as f:

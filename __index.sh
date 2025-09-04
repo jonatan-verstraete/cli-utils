@@ -15,7 +15,7 @@ source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 
 
 ############################################################
-################# Running function $########################
+############## Running local function ######################
 ############################################################
 
 :random-bg() {
@@ -44,6 +44,22 @@ source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 
 :blink() {
     bash "$PATH_CLI_UTILS/blink" "$@"
+}
+
+:lama() {
+	models=($(ollama list | awk 'NR>1' | cut  -wf 1))
+
+	echo "Choose a model:"
+	for ((i = 0; i < ${#models[@]}; i++)); do
+		printf "%d) %s\n" $((i + 1)) "${models[i]}"
+	done
+
+	# read "Enter the number for the model: " choice
+	read -r choice
+	choice=$(( $choice + 0 ))
+	model=${models[$((choice - 1))]}
+
+	ollama run "$model"
 }
 
 ############################################################
