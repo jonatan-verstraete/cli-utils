@@ -49,17 +49,33 @@ source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 :lama() {
 	models=($(ollama list | awk 'NR>1' | cut  -wf 1))
 
+	
+
 	echo "Choose a model:"
 	for ((i = 0; i < ${#models[@]}; i++)); do
-		printf "%d) %s\n" $((i + 1)) "${models[i]}"
+		printf "%d) %s\n" $((i+1)) "${models[i+ 1]}"
+		
+
+		if [[ $1 ]]; then
+			ollama show "${models[i+ 1]}"
+		clear
+	fi
 	done
 
 	# read "Enter the number for the model: " choice
 	read -r choice
 	choice=$(( $choice + 0 ))
-	model=${models[$((choice - 1))]}
+	model=${models[$choice]}
 
-	ollama run "$model"
+	if [[ $model ]]; then
+		clear
+		ollama show "${models[i+ 1]}"
+		echo " "
+		ollama run "$model"
+		return 1
+	fi
+
+	echo "Invalid choice."
 }
 
 ############################################################
@@ -106,6 +122,15 @@ source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 	fi
 	clear
 	echo "Cache cleared!"
+}
+
+code() {
+	if ["$1" = 'settings']; then
+		$1 = '~/Library/Application Support/Code/User/settings.json'
+	fi
+	# ~/Library/Application Support/Code/User/settings.json
+	[[ $1 = /* ]] && F="$1" || F="$PWD/${1#./}"
+	open -a "Visual Studio Code" --args "$F"
 }
 
 
