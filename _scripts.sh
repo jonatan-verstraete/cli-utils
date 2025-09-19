@@ -24,5 +24,5 @@ cli_pth_vendors="$PATH_CLI_UTILS/vendor"
 }
 
 :grep-component() {
-    python3 "$cli_pth_scripts/grep-react-component.py" "$@"
+    python3 "$cli_pth_scripts/fn-grep-react-component.py" "$@"
 }
