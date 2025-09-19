@@ -1,155 +1,21 @@
 #!/bin/bash
+# Please import me :)
 
-## note: this file should imported in ~/.zprofile 
+# path to this repo
 export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils"
 
-############################################################
-###################### imports #############################
-############################################################
 
-source "$PATH_CLI_UTILS/fn-capture-output.sh"
-source "$PATH_CLI_UTILS/fn-convert-to-mp3.sh"
-source "$PATH_CLI_UTILS/fn-createpr.sh"
+source "$PATH_CLI_UTILS/_alias.sh"
+source "$PATH_CLI_UTILS/_scripts.sh"
+source "$PATH_CLI_UTILS/_utils.sh"
 
 source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 
 
-############################################################
-############## Running local function ######################
-############################################################
-
-:random-bg() {
-	local URL="${1:-'$HOME/Documents/ai-quotes'}"
-	python3 "$PATH_CLI_UTILS/fn-setRandomBackground.py" $URL
-}
-
-
-############################################################
-######################## utils #############################
-############################################################
-
-
-:download-spotify() {
-   local URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
-    spotdl $URL
-}
-
-
-
-:download-yt() {
-    $PATH_CLI_UTILS/yt-dlp_macos -x --audio-format mp3 --audio-quality 0 "$1"
-}
-
-
-
-:blink() {
-    bash "$PATH_CLI_UTILS/blink" "$@"
-}
-
-:lama() {
-	models=($(ollama list | awk 'NR>1' | cut  -wf 1))
-
-	
-
-	echo "Choose a model:"
-	for ((i = 0; i < ${#models[@]}; i++)); do
-		printf "%d) %s\n" $((i+1)) "${models[i+ 1]}"
-		
-
-		if [[ $1 ]]; then
-			ollama show "${models[i+ 1]}"
-		clear
-	fi
-	done
-
-	# read "Enter the number for the model: " choice
-	read -r choice
-	choice=$(( $choice + 0 ))
-	model=${models[$choice]}
-
-	if [[ $model ]]; then
-		clear
-		ollama show "${models[i+ 1]}"
-		echo " "
-		ollama run "$model"
-		return 1
-	fi
-
-	echo "Invalid choice."
-}
-
-############################################################
-################ copied from basic setup ###################
-############################################################
-
-
-# kodo aka Kodokushi (孤独死) or lonely death refers to a Japanese phenomenon of people dying alone and remaining undiscovered for a long period of time.
-:kodo() (
-	if [[ $1 ]]; then
-		newtab
-		clear
-	fi
-	kill -9 $$
-	:close
-)
-
-# closes current terminal
-:close() (
-	v="green-mile"
-	echo -n -e "\033]0;$v\007"
-	osascript -e 'tell application "Terminal" to close (every window whose name contains "'$v'")' &
-)
-
-# easy mkdir -p
-:mkdir() {
-    mkdir -p $1
-    cd $1
-}
-
-
-:clearcache() {
-	rm -rf ~/Library/Application\ Support/CrashReporter/*
-	rm -rf ~/Library/Application\ Support/stremio-server/stremio-cache
-	# rm -rf ~/Library/Caches/*
-	rm -rf ~/Library/Logs/*
-	yarn cache clean
-	
-	if [[ $1 ]]; then
-		rm -rf ~/Library/Application\ Support/Adobe/Common/Media\ Cache\ Files/*
-		rm -rf ~/Library/Application\ Support/Adobe/Common/Analyzer\ Cache\ Files/*
-		rm -rf ~/Library/Application\ Support/Adobe/Common/Peak\ Files/*
-		# rm -rf ~/Library/Application\ Support/Code/Cache/Cache_Data
-	fi
-	clear
-	echo "Cache cleared!"
-}
-
 code() {
-	if ["$1" = 'settings']; then
-		$1 = '~/Library/Application Support/Code/User/settings.json'
-	fi
-	# ~/Library/Application Support/Code/User/settings.json
-	[[ $1 = /* ]] && F="$1" || F="$PWD/${1#./}"
-	open -a "Visual Studio Code" --args "$F"
+	# default is mac vs code settings
+	local file="${1:-$HOME/Library/Application Support/Code/User/settings.json}"
+    open -a "Visual Studio Code" --args "$file"
 }
 
 
-alias l='ls'
-alias ll='ls -l'
-alias la='ls -a'
-alias l1='ls -1'
-alias sl="ls"
-alias lsl="ls -lhFA | less"
-
-alias c='clear'
-
-alias t1='tree -L 1'
-alias t2='tree -L 2'
-alias t3='tree -L 3'
-# usage of file size (only 2levels as it might do insane search otherwise)
-alias t2m='tree --du -h -L 2 | grep M]'
-#alias tsg='tree --du -h | grep G]'
-
-alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"
-
-alias python="python3"
