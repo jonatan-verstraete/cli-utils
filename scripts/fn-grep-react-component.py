@@ -1,34 +1,22 @@
 #!/usr/bin/env python3
 """
-find_uiavatar.py
-Find all self-closing <UiAvatar ... /> instances in .tsx files under whitelist dirs,
-skipping blacklisted folders. Outputs a single text file with all instances.
+find_component.py
 
-Usage examples:
-  python find_uiavatar.py
-  python find_uiavatar.py --root . --whitelist src packages/*/src
-  python find_uiavatar.py --use-gitignore --dedupe --include-location
+Find all <Component ... /> instances (self-closing or not) in source files.
 
-Notes:
- - Default whitelist: ["src"]
- - Default blacklist: ["node_modules","dist","build",".git",".*"]
- - --use-gitignore loads simple patterns from .gitignore (ignores comments and negations).
- - This uses a regex (non-greedy) to match self-closing tags. Not a full JSX parser.
+Usage:
+  python find_component.py UiAvatar
+  python find_component.py UserIcon --ext .jsx
 """
 
-import os
-import re
-import argparse
+import os, re
 import fnmatch
-import glob
+import argparse
 from pathlib import Path
-from typing import List, Set
-import subprocess
-from datetime import datetime
+from typing import List, Iterable, Tuple
+from subprocess import run
 
-
-# lists for the root
-DEFAULT_WHITELIST = ["src", 'packages', 'apps']
+# Default blacklist directories
 DEFAULT_BLACKLIST = [
     "node_modules",
     "dist",
@@ -37,18 +25,25 @@ DEFAULT_BLACKLIST = [
     ".*",          # hidden files/dirs
     ".venv",
     "__pycache__",
-    "helm"
+    "helm",
 ]
 
-# Regex: non-greedy match for <UiAvatar ... /> including newlines
-UIAVATAR_RE = re.compile(r"<UiAvatar\b.*?\/>", re.DOTALL)
 
-
-def load_simple_gitignore_patterns(root: Path) -> List[str]:
-    """Load lines from .gitignore as simple patterns.
-       This is a best-effort parser: ignores comments and blank lines, ignores negations.
-       Does NOT implement full gitignore semantics (e.g., directory vs file rules, ! negation).
+def build_component_regex(component: str) -> re.Pattern:
     """
+    Regex that matches either:
+      - <Component ... />  (self-closing)
+      - <Component ...> ... </Component>  (with children)
+    Uses non-greedy matching to capture attributes.
+    """
+    name = re.escape(component)
+    return re.compile(
+        rf"<{name}\b.*?(?:\/>|>.*?<\/{name}>)",
+        re.DOTALL,
+    )
+
+
+def load_gitignore_patterns(root: Path) -> List[str]:
     gitignore = root / ".gitignore"
     if not gitignore.exists():
         return []
@@ -57,181 +52,95 @@ def load_simple_gitignore_patterns(root: Path) -> List[str]:
         s = line.strip()
         if not s or s.startswith("#") or s.startswith("!"):
             continue
-        # Normalize trailing slash pattern to match directories more easily:
         if s.endswith("/"):
-            s = s + "*"   # so "dist/" -> "dist/*"
+            s += "*"
         patterns.append(s)
     return patterns
 
 
-def path_matches_any_pattern(path: str, patterns: List[str]) -> bool:
-    """
-    Test whether any part of the given path (or the final path string) matches one of the glob-style patterns.
-    We check:
-      - the full relative path string
-      - each path component separately (so "node_modules" catches "/foo/node_modules/bar")
-    """
-    # Normalize for fnmatch (use posix-style)
-    norm = path.replace(os.sep, "/")
-    for pat in patterns:
-        # try matching both against full path and against each component
-        try:
-            if fnmatch.fnmatch(norm, pat) or fnmatch.fnmatch(os.path.basename(norm), pat):
-                return True
-        except Exception:
-            # Be robust if somebody passes an invalid pattern
-            continue
-    # check path components
+def matches_any_pattern(relpath: str, patterns: Iterable[str]) -> bool:
+    norm = relpath.replace(os.sep, "/")
     parts = norm.split("/")
-    for part in parts:
-        for pat in patterns:
-            if fnmatch.fnmatch(part, pat):
-                return True
+    for pat in patterns:
+        if fnmatch.fnmatch(norm, pat) or any(fnmatch.fnmatch(p, pat) for p in parts):
+            return True
     return False
 
 
-def expand_whitelist_roots(root: Path, whitelist_patterns: List[str]) -> List[str]:
-    """Expand whitelist patterns (glob-style) under root to concrete folder paths."""
-    roots = []
-    for pat in whitelist_patterns:
-        # Use glob relative to root
-        matches = glob.glob(str(root / pat), recursive=True)
-        if not matches:
-            # also try literal (maybe user passed an existing subdir)
-            candidate = root / pat
-            if candidate.exists() and candidate.is_dir():
-                matches = [str(candidate)]
-        for m in matches:
-            if os.path.isdir(m):
-                roots.append(os.path.abspath(m))
-    # dedupe and sort
-    return sorted(set(roots))
+def gather_files(root: Path, ext: str, blacklist: List[str]) -> Iterable[Path]:
+    root_str = str(root)
+    for dirpath, dirnames, filenames in os.walk(root_str):
+        for d in list(dirnames):
+            rel = os.path.relpath(os.path.join(dirpath, d), start=root_str)
+            if matches_any_pattern(rel, blacklist):
+                dirnames.remove(d)
+        for fname in filenames:
+            if fname.endswith(ext):
+                yield Path(dirpath) / fname
 
 
-def find_uiavatar_instances_in_content(content: str) -> List[re.Match]:
-    return list(UIAVATAR_RE.finditer(content))
+def find_instances(path: Path, pattern: re.Pattern) -> List[Tuple[str, int]]:
+    try:
+        content = path.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return []
+    matches = []
+    for m in pattern.finditer(content):
+        snippet = m.group(0)
+        line_no = content.count("\n", 0, m.start()) + 1
+        matches.append((snippet, line_no))
+    return matches
+
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Find self-closing <UiAvatar ... /> instances in .tsx files.")
-    ap.add_argument("--root", 
-        default=".", 
-        help="Repo root to run from (default: current directory).")
-    ap.add_argument("--whitelist", 
-        nargs="+", 
-        default=DEFAULT_WHITELIST,
-        help="Whitelist folder globs relative to root (default: src). Example: src packages/*/src")
-    ap.add_argument("--blacklist", 
-        nargs="+", 
-        default=DEFAULT_BLACKLIST,
-        help="Blacklist name/patterns to skip (glob-style). Default includes node_modules, dist, .*")
-    ap.add_argument("--use-gitignore", 
-        action="store_true", 
-        help="Also load patterns from .gitignore (best-effort).")
-    ap.add_argument("--dedupe", 
-        action="store_true", 
-        help="Deduplicate identical snippets in the output.")
-    ap.add_argument("--include-location", 
-        action="store_true",
-        help="Prefix each snippet with a comment containing file path and line number.")
-    ap.add_argument("--ext", 
-        default=".tsx", 
-        help="File extension to scan (default .tsx).")
-    ap.add_argument("--verbose", 
-        action="store_true")
-    
+    root = Path.cwd()
+
+    ap = argparse.ArgumentParser(description="Find JSX/TSX component instances in source files.")
+    ap.add_argument("component", help="Component name to search for (e.g. UiAvatar)")
+    ap.add_argument("--ext", default=".tsx", help="File extension to search (default: .tsx)")
+    ap.add_argument("--out", default=root, help="Output dir (default: is the current dir)")
     args = ap.parse_args()
 
-    root = Path(args.root).resolve()
-    if args.verbose:
-        print(f"[INFO] root: {root}")
-
-    blacklist_patterns = list(args.blacklist)
-    if args.use_gitignore:
-        gitignore_patterns = load_simple_gitignore_patterns(root)
-        if args.verbose:
-            print(f"[INFO] loaded {len(gitignore_patterns)} patterns from .gitignore")
-        blacklist_patterns.extend(gitignore_patterns)
-
-    if args.verbose:
-        print(f"[INFO] whitelist globs: {args.whitelist}")
-        print(f"[INFO] blacklist patterns: {blacklist_patterns}")
-
-    search_roots = expand_whitelist_roots(root, args.whitelist)
-    if not search_roots:
-        print("[WARN] No whitelist directories found. Nothing to do.", flush=True)
+    if not args.out or not args.ext or not args.component:
+        ap.error("Missing params")
         return
     
+    if not args.ext.startswith("."):
+        args.ext = "." + args.ext
 
+    blacklist = DEFAULT_BLACKLIST + load_gitignore_patterns(root)
+    regex = build_component_regex(args.component)
 
-    if args.verbose:
-        print(f"[INFO] expanded search roots: {search_roots}")
+    results: List[Tuple[str, str, int]] = []
+    for fpath in gather_files(root, args.ext, blacklist):
+        rel = os.path.relpath(fpath, start=root)
+        for snippet, line in find_instances(fpath, regex):
+            results.append((snippet, rel, line))
 
-    collected = []  # list of tuples (snippet_str, filepath, line)
-    seen_snippets: Set[str] = set()
+    if not len(results):
+        print(f"Exit. Could not find any instances.")
+        return
 
-    for search_root in search_roots:
-        for dirpath, dirnames, filenames in os.walk(search_root):
-            # mutate dirnames in-place to prune blacklisted folders (speed + correctness)
-            # Keep only subdirs that are NOT blacklisted.
-            pruned = []
-            for d in dirnames:
-                candidate_path = os.path.join(dirpath, d)
-                rel_candidate = os.path.relpath(candidate_path, start=str(root))
-                if path_matches_any_pattern(rel_candidate, blacklist_patterns):
-                    if args.verbose:
-                        print(f"[SKIP DIR] {candidate_path} (blacklisted)")
-                    continue
-                pruned.append(d)
-            dirnames[:] = pruned
+    print(f"✅ Found {len(results)} instances\n")
 
-            for fname in filenames:
-                if not fname.endswith(args.ext):
-                    continue
-                file_path = os.path.join(dirpath, fname)
-                rel_file_path = os.path.relpath(file_path, start=str(root))
-                try:
-                    with open(file_path, "r", encoding="utf-8", errors="ignore") as fh:
-                        content = fh.read()
-                except Exception as e:
-                    if args.verbose:
-                        print(f"[ERROR] reading {file_path}: {e}")
-                    continue
+    out_lines: List[str] = []
+    for snippet, relpath, line_no in results:
+        out_lines.append(f"// {relpath}:{line_no}")
+        out_lines.append(snippet)
+        out_lines.append("")
 
-                for m in find_uiavatar_instances_in_content(content):
-                    snippet = m.group(0)
-                    # compute 1-based line number
-                    line_no = content.count("\n", 0, m.start()) + 1
-                    if args.dedupe:
-                        key = snippet
-                        if key in seen_snippets:
-                            continue
-                        seen_snippets.add(key)
-                    collected.append((snippet, rel_file_path, line_no))
-    
+    output_text = "\n".join(out_lines)
 
-    # Write output file
-    out_path = os.path.expanduser(f"~/Desktop/react-component-search-output-{datetime.now().strftime("%Y%m%d_%H%M%S")}.tsx")
-    with open(out_path, "w", encoding="utf-8") as outf:
-        outf.write(f"const occurrences = [\n")
-        for snippet, relpath, line_no in collected:
-            if args.include_location:
-                # write a comment line with file and line
-                outf.write(f"// {relpath}:{line_no}\n")
-            # Write the snippet as-is to preserve indentation and formatting
-            outf.write(snippet + "\n\n")
-        outf.write(f"\n]")
+    out_path = os.path.expanduser(f"{args.out}/grep-component-results-{args.component}.ts")
+    Path(out_path).write_text(output_text, encoding="utf-8")
 
-    # try formatting doc
-    try:
-        subprocess.run(["yarn", "prettier", "--write",
-            out_path
-        ])
-    except Exception as e:
-        print('Failed to format output file')
+    # try formatting doc 
+    try: 
+        run(["yarn", "prettier", "--write", out_path ])
+    except Exception as e: 
+        print('[i] Failed to format output file')
 
-
-    print(f"✅ Done. Found {len(collected)} UiAvatar instances. Wrote to: {out_path}")
 
 if __name__ == "__main__":
     main()
