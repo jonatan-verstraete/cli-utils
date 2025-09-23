@@ -6,7 +6,7 @@ skipping blacklisted folders. Outputs a single text file with all instances.
 
 Usage examples:
   python find_uiavatar.py
-  python find_uiavatar.py --root . --whitelist src packages/*/src
+  python find_uiavatar.py --root . --whitelist src packages/*/src --output uiavatar_instances.txt
   python find_uiavatar.py --use-gitignore --dedupe --include-location
 
 Notes:
@@ -23,12 +23,8 @@ import fnmatch
 import glob
 from pathlib import Path
 from typing import List, Set
-import subprocess
-from datetime import datetime
 
-
-# lists for the root
-DEFAULT_WHITELIST = ["src", 'packages', 'apps']
+DEFAULT_WHITELIST = ["src", 'packages', 'app']
 DEFAULT_BLACKLIST = [
     "node_modules",
     "dist",
@@ -37,7 +33,6 @@ DEFAULT_BLACKLIST = [
     ".*",          # hidden files/dirs
     ".venv",
     "__pycache__",
-    "helm"
 ]
 
 # Regex: non-greedy match for <UiAvatar ... /> including newlines
@@ -114,32 +109,18 @@ def find_uiavatar_instances_in_content(content: str) -> List[re.Match]:
 
 def main():
     ap = argparse.ArgumentParser(description="Find self-closing <UiAvatar ... /> instances in .tsx files.")
-    ap.add_argument("--root", 
-        default=".", 
-        help="Repo root to run from (default: current directory).")
-    ap.add_argument("--whitelist", 
-        nargs="+", 
-        default=DEFAULT_WHITELIST,
-        help="Whitelist folder globs relative to root (default: src). Example: src packages/*/src")
-    ap.add_argument("--blacklist", 
-        nargs="+", 
-        default=DEFAULT_BLACKLIST,
-        help="Blacklist name/patterns to skip (glob-style). Default includes node_modules, dist, .*")
-    ap.add_argument("--use-gitignore", 
-        action="store_true", 
-        help="Also load patterns from .gitignore (best-effort).")
-    ap.add_argument("--dedupe", 
-        action="store_true", 
-        help="Deduplicate identical snippets in the output.")
-    ap.add_argument("--include-location", 
-        action="store_true",
-        help="Prefix each snippet with a comment containing file path and line number.")
-    ap.add_argument("--ext", 
-        default=".tsx", 
-        help="File extension to scan (default .tsx).")
-    ap.add_argument("--verbose", 
-        action="store_true")
-    
+    ap.add_argument("--root", default=".", help="Repo root to run from (default: current directory).")
+    ap.add_argument("--whitelist", nargs="+", default=DEFAULT_WHITELIST,
+                    help="Whitelist folder globs relative to root (default: src). Example: src packages/*/src")
+    ap.add_argument("--blacklist", nargs="+", default=DEFAULT_BLACKLIST,
+                    help="Blacklist name/patterns to skip (glob-style). Default includes node_modules, dist, .*")
+    ap.add_argument("--use-gitignore", action="store_true", help="Also load patterns from .gitignore (best-effort).")
+    ap.add_argument("--output", default="uiavatar_instances.txt", help="Output file (default uiavatar_instances.txt).")
+    ap.add_argument("--dedupe", action="store_true", help="Deduplicate identical snippets in the output.")
+    ap.add_argument("--include-location", action="store_true",
+                    help="Prefix each snippet with a comment containing file path and line number.")
+    ap.add_argument("--ext", default=".tsx", help="File extension to scan (default .tsx).")
+    ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
@@ -161,8 +142,6 @@ def main():
     if not search_roots:
         print("[WARN] No whitelist directories found. Nothing to do.", flush=True)
         return
-    
-
 
     if args.verbose:
         print(f"[INFO] expanded search roots: {search_roots}")
@@ -208,28 +187,16 @@ def main():
                             continue
                         seen_snippets.add(key)
                     collected.append((snippet, rel_file_path, line_no))
-    
 
     # Write output file
-    out_path = os.path.expanduser(f"~/Desktop/react-component-search-output-{datetime.now().strftime("%Y%m%d_%H%M%S")}.tsx")
+    out_path = Path(args.output)
     with open(out_path, "w", encoding="utf-8") as outf:
-        outf.write(f"const occurrences = [\n")
         for snippet, relpath, line_no in collected:
             if args.include_location:
                 # write a comment line with file and line
                 outf.write(f"// {relpath}:{line_no}\n")
             # Write the snippet as-is to preserve indentation and formatting
             outf.write(snippet + "\n\n")
-        outf.write(f"\n]")
-
-    # try formatting doc
-    try:
-        subprocess.run(["yarn", "prettier", "--write",
-            out_path
-        ])
-    except Exception as e:
-        print('Failed to format output file')
-
 
     print(f"✅ Done. Found {len(collected)} UiAvatar instances. Wrote to: {out_path}")
 
