@@ -7,7 +7,7 @@ export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils"
 
 source "$PATH_CLI_UTILS/_alias.sh"
 source "$PATH_CLI_UTILS/_scripts.sh"
-source "$PATH_CLI_UTILS/_utils.sh"
+source "$PATH_CLI_UTILS/_functions.sh"
 
 source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 

@@ -2,8 +2,12 @@ import os
 import sys
 import subprocess
 from send2trash import send2trash
+from pathlib import Path
+
 
 def compress_video(input_path):
+    if not input_path:
+        return
     # Validate file
     if not input_path.endswith(".mov") or not os.path.basename(input_path).startswith("Screen Recording"):
         print(f"Skipped: {input_path} is not a valid screen recording.")
@@ -42,5 +46,9 @@ def compress_video(input_path):
         print(result.stderr.decode())
 
 if __name__ == "__main__":
-    for path in sys.argv[1:]:
+    paths = sys.argv[1:]
+    if sys.argv[1] == '-y':
+        paths = Path(os.path.expanduser('~/Desktop')).glob("*.mov")
+
+    for path in paths:
         compress_video(path)

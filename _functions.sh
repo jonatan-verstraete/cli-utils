@@ -1,11 +1,5 @@
+#### general functions ####
 
-
-# standalone functions that reply on global commands
-
-:download-spotify() {
-	local URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
-	spotdl $URL
-}
 
 :llm() {
 	if [[ "$1" = 's' ]]; then
@@ -16,29 +10,26 @@
 
 	for ((i = 0; i < ${#models[@]}; i++)); do
 		printf "%d) %s\n" $((i+1)) "${models[i+ 1]}"
-
-		if [[ $1 ]]; then
-			ollama show "${models[i+ 1]}"
-			clear
-		fi
 	done
 
-	# read "Enter the number for the model: " choice
-	read -r choice
-	choice=$(( $choice + 0 ))
-	model=${models[$choice]}
+    model_index=-1
+    if [[ $1 =~ ^[+-]?[0-9]+$ ]]; then
+        model_index=$1
+	else
+        read -r res
+        model_index=$(( $res + 0 ))
+    fi
+	model=${models[$model_index]}
 
 	if [[ $model ]]; then
 		clear
-		ollama show "${models[i+ 1]}"
-		echo " "
+		ollama show "$model"
+		echo ""
+		echo "Running: $model"
 		ollama run "$model"
 		return 1
 	fi
-
-	echo "Invalid choice."
 }
-
 
 # kodo aka Kodokushi (孤独死) or lonely death refers to a Japanese phenomenon of people dying alone and remaining undiscovered for a long period of time.
 :kodo() (
@@ -100,4 +91,10 @@
     done
 
     echo "$NUM_FILES files generated."
+}
+
+
+:download-spotify() {
+	local URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
+	spotdl $URL
 }
