@@ -9,9 +9,9 @@ def compress_video(input_path):
     if not input_path:
         return
     # Validate file
-    if not input_path.endswith(".mov") or not os.path.basename(input_path).startswith("Screen Recording"):
-        print(f"Skipped: {input_path} is not a valid screen recording.")
-        return
+    # if not input_path.endswith(".mov") or not os.path.basename(input_path).startswith("Screen Recording"):
+    #     print(f"Skipped: {input_path} is not a valid screen recording.")
+    #     return
 
     if not os.path.exists(input_path):
         print(f"File not found: {input_path}")
