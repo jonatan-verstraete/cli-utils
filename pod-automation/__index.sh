@@ -11,11 +11,12 @@ source $SCRIPT_DIR/fn-pod-compress.sh
 }
 
 
-
+# sometimes files can have vfr and vbr and the audio is out of sync with the video and you can fix it by simply moving either as the rates are not in sync
+# this is supposed to fix that sync 
 :pod-sync() {
   input="$1"
   if [ -z "$input" ] || [ ! -f "$input" ]; then
-    echo "Usage: fix-av-sync /path/to/input.mov"
+    echo "wanker.."
     return 1
   fi
 
@@ -34,13 +35,9 @@ source $SCRIPT_DIR/fn-pod-compress.sh
     "$output"
 
   if [ $? -eq 0 ]; then
-    echo "✅ Fixed file saved to: $output"
+    return 0
   else
-    echo "❌ Conversion failed."
+    echo "Uppss failed. Blame the furniture!"
     return 1
   fi
 }
-``
-
-
-
