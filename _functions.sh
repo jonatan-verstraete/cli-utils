@@ -1,4 +1,4 @@
-#### general functions ####
+#### general custom functions ####
 
 
 :llm() {

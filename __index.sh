@@ -8,14 +8,15 @@ export PATH_CLI_UTILS="$HOME/Documents/GitHub/cli-utils"
 source "$PATH_CLI_UTILS/_alias.sh"
 source "$PATH_CLI_UTILS/_scripts.sh"
 source "$PATH_CLI_UTILS/_functions.sh"
+source "$PATH_CLI_UTILS/_overwrites.sh"
 
 source "$PATH_CLI_UTILS/pod-automation/__index.sh"
 
 
-code() {
-	# default is mac vs code settings
+#### global functions ro overwrites ####
+
+code() { 
+	# default is mac vs code settings - TODO, fix me
 	local file="${1:-$HOME/Library/Application Support/Code/User/settings.json}"
     open -a "Visual Studio Code" --args "$file"
 }
-
-

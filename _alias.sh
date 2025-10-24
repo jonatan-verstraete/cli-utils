@@ -1,4 +1,3 @@
-
 alias l='ls -1'
 alias ll='ls -l'
 alias la='ls -a1'
@@ -14,11 +13,11 @@ alias t3='tree -L 3'
 # usage of file size (only 2levels as it might do insane search otherwise)
 alias t2m='tree --du -h -L 2 | grep M]'
 #alias tsg='tree --du -h | grep G]'
-
-alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"
+# alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"
 
 alias python="python3"
 alias pip="pip3"
+
 alias yd="yarn dev"
 alias yqrn="yarn"
 alias pn="pnpm"
