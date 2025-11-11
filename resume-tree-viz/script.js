@@ -41,16 +41,31 @@ const experiences = [
     }
 ];
 
-// Tree configuration - simplified
+// Tree configuration - left-aligned with hue coloring
 const treeConfig = {
-    centerLineX: 300,  // Center timeline position
+    timelineX: 180,      // Left-aligned timeline (minimal space for left events)
     startY: 50,
-    rowGap: 100,
-    leftOffset: 250,   // How far left from center
-    rightOffset: 40,   // How far right from center
+    rowGap: 130,         // Spacing between main cards
+    leftOffset: 150,     // Space for left events
+    rightOffset: 40,     // Space to right cards
     dotRadius: 5,
-    lineColor: '#b8d0e0'
+    dotBorderWidth: 2,
+    lineWidth: 1.5,
+    timelineWidth: 2,
+    baseColor: '#7fa8c4',
+    colorMode: 'hue'     // 'hue' or 'mono'
 };
+
+// Get color based on timeline position
+function getEventColor(index, total) {
+    if (treeConfig.colorMode === 'mono') {
+        return treeConfig.baseColor;
+    } else {
+        // Hue-based color: rotate through hue spectrum
+        const hue = (360 / total) * index;
+        return `hsl(${hue}, 45%, 60%)`;
+    }
+}
 
 // Initialize the visualization
 function init() {
@@ -73,46 +88,67 @@ function init() {
     renderExperiences(container);
 }
 
-// Calculate positions - simple vertical spacing
+// Calculate positions - simple vertical spacing with gaps for main cards
 function calculatePositions() {
-    experiences.forEach(exp => {
-        exp.calculatedY = treeConfig.startY + (exp.timelinePos * treeConfig.rowGap);
-        exp.calculatedX = treeConfig.centerLineX;
+    let currentY = treeConfig.startY;
+    
+    experiences.forEach((exp, index) => {
+        exp.calculatedY = currentY;
+        exp.calculatedX = treeConfig.timelineX;
+        exp.eventIndex = index;
+        
+        // Add larger spacing after main content cards
+        if (exp.side === 'right') {
+            currentY += treeConfig.rowGap;
+        } else {
+            currentY += 60; // Smaller spacing for left events
+        }
     });
 }
 
-// Draw the tree structure - single center timeline
+// Draw the tree structure - refined modern design
 function drawTree(svg) {
     svg.innerHTML = '';
     
-    // Draw single vertical timeline in the center
+    const totalEvents = experiences.length;
+    
+    // Draw single vertical timeline (thin, refined)
     const startY = treeConfig.startY - 20;
     const endY = experiences[experiences.length - 1].calculatedY + 50;
     
     const timeline = createPath([
-        `M ${treeConfig.centerLineX} ${startY}`,
-        `L ${treeConfig.centerLineX} ${endY}`
+        `M ${treeConfig.timelineX} ${startY}`,
+        `L ${treeConfig.timelineX} ${endY}`
     ]);
-    timeline.style.stroke = treeConfig.lineColor;
-    timeline.style.strokeWidth = '2';
-    timeline.style.opacity = '0.6';
+    timeline.style.stroke = '#d5dfe6';
+    timeline.style.strokeWidth = treeConfig.timelineWidth;
+    timeline.style.opacity = '0.5';
     svg.appendChild(timeline);
     
-    // Draw dots and simple horizontal lines for each event
-    experiences.forEach(exp => {
+    // Draw dots and horizontal lines for each event
+    experiences.forEach((exp, index) => {
         const x = exp.calculatedX;
         const y = exp.calculatedY;
+        const eventColor = getEventColor(index, totalEvents);
         
-        // Draw dot at this point
-        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        dot.setAttribute('cx', x);
-        dot.setAttribute('cy', y);
-        dot.setAttribute('r', treeConfig.dotRadius);
-        dot.style.fill = '#7fa8c4';
-        dot.style.opacity = '0.7';
-        svg.appendChild(dot);
+        // Draw refined dot with white border (5px with 2px white border)
+        const dotOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dotOuter.setAttribute('cx', x);
+        dotOuter.setAttribute('cy', y);
+        dotOuter.setAttribute('r', treeConfig.dotRadius);
+        dotOuter.style.fill = '#ffffff';
+        dotOuter.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))';
+        svg.appendChild(dotOuter);
         
-        // Draw simple horizontal line to the card
+        const dotInner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dotInner.setAttribute('cx', x);
+        dotInner.setAttribute('cy', y);
+        dotInner.setAttribute('r', treeConfig.dotRadius - treeConfig.dotBorderWidth);
+        dotInner.style.fill = eventColor;
+        dotInner.style.opacity = '0.9';
+        svg.appendChild(dotInner);
+        
+        // Draw thin horizontal line to the card
         const lineEndX = exp.side === 'right' 
             ? x + treeConfig.rightOffset 
             : x - treeConfig.leftOffset;
@@ -121,8 +157,8 @@ function drawTree(svg) {
             `M ${x} ${y}`,
             `L ${lineEndX} ${y}`
         ]);
-        connectLine.style.stroke = treeConfig.lineColor;
-        connectLine.style.strokeWidth = '1';
+        connectLine.style.stroke = eventColor;
+        connectLine.style.strokeWidth = treeConfig.lineWidth;
         connectLine.style.opacity = '0.3';
         svg.appendChild(connectLine);
     });
@@ -135,7 +171,7 @@ function createPath(commands) {
     return path;
 }
 
-// Render experience nodes - simplified layout
+// Render experience nodes - refined layout
 function renderExperiences(container) {
     container.innerHTML = '';
     
@@ -146,10 +182,10 @@ function renderExperiences(container) {
         const y = exp.calculatedY;
         
         if (exp.side === 'right') {
-            // Main content on the right - full detailed cards
+            // Main content on the right - full detailed cards with spacing
             element.className = 'experience-main';
-            element.style.left = `${treeConfig.centerLineX + treeConfig.rightOffset + 5}px`;
-            element.style.top = `${y - 25}px`;
+            element.style.left = `${treeConfig.timelineX + treeConfig.rightOffset + 5}px`;
+            element.style.top = `${y - 30}px`;
             
             element.innerHTML = `
                 <div class="main-header">
@@ -162,15 +198,15 @@ function renderExperiences(container) {
                 </div>
             `;
         } else {
-            // Small events on the left - simple notes
+            // Small events on the left - simple p tags
             element.className = 'experience-note';
-            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - treeConfig.centerLineX + treeConfig.leftOffset - 5}px`;
-            element.style.top = `${y - 10}px`;
+            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - treeConfig.timelineX + treeConfig.leftOffset - 5}px`;
+            element.style.top = `${y - 12}px`;
             element.style.textAlign = 'right';
             
             element.innerHTML = `
-                <div class="note-title">${exp.title}</div>
-                <div class="note-year">${exp.year}</div>
+                <p class="note-title">${exp.title}</p>
+                <p class="note-year">${exp.year}</p>
             `;
         }
         

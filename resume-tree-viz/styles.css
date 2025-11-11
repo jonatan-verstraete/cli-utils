@@ -49,6 +49,7 @@ body {
     position: relative;
     width: 100%;
     min-height: 600px;
+    padding-left: 20px; /* Account for sidebar presence */
 }
 
 .tree-canvas {
@@ -66,79 +67,90 @@ body {
     z-index: 2;
 }
 
-/* Main content cards on the right */
+/* Main content cards on the right - refined modern style */
 .experience-main {
     position: absolute;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 18px 22px;
-    max-width: 340px;
-    border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(74, 124, 158, 0.08);
-    border-left: 2px solid #7fa8c4;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 20px 24px;
+    max-width: 360px;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06),
+                0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 24px; /* Spacing between cards */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .experience-main:hover {
-    box-shadow: 0 2px 6px rgba(74, 124, 158, 0.12);
-    transform: translateX(2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+                0 2px 6px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px) translateX(2px);
 }
 
 .main-header {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .main-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    color: #4a7c9e;
-    margin-bottom: 3px;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    letter-spacing: 0.01em;
 }
 
 .main-year {
     font-size: 11px;
-    color: #95a5a6;
-    font-weight: 300;
+    color: #8996a3;
+    font-weight: 400;
 }
 
 .main-description {
-    font-size: 12px;
+    font-size: 13px;
     color: #5a6b7a;
-    line-height: 1.5;
-    margin-bottom: 10px;
+    line-height: 1.6;
+    margin-bottom: 12px;
 }
 
 .main-stack {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 6px;
 }
 
 .stack-tag {
     font-size: 10px;
-    padding: 3px 8px;
-    background: rgba(127, 168, 196, 0.08);
+    padding: 4px 10px;
+    background: linear-gradient(135deg, rgba(127, 168, 196, 0.08) 0%, rgba(127, 168, 196, 0.12) 100%);
     color: #6b92ab;
-    border-radius: 2px;
+    border-radius: 3px;
     font-weight: 400;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
 }
 
-/* Small notes on the left */
+.stack-tag:hover {
+    background: linear-gradient(135deg, rgba(127, 168, 196, 0.12) 0%, rgba(127, 168, 196, 0.16) 100%);
+}
+
+/* Small notes on the left - simple minimal p tags */
 .experience-note {
     position: absolute;
-    max-width: 220px;
+    max-width: 140px;
 }
 
 .note-title {
     font-size: 12px;
     font-weight: 400;
     color: #6b92ab;
-    margin-bottom: 2px;
+    margin: 0 0 2px 0;
+    line-height: 1.4;
 }
 
 .note-year {
     font-size: 10px;
-    color: #95a5a6;
+    color: #a0aab5;
     font-weight: 300;
+    margin: 0;
 }
 
 /* Print styles for A4 */
