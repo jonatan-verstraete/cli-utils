@@ -1,46 +1,70 @@
 # Resume Experience Tree Visualization
 
-A minimal, elegant timeline visualization for displaying programming experience on a resume. Features a clean single-line timeline with events branching left (small notes) and right (main content).
+A minimal, elegant timeline visualization for displaying programming experience on a resume. Features a refined modern design with left-aligned timeline, hue-based coloring, and smooth 2030-style aesthetics.
 
 ## Features
 
 - **A4 Page Size**: Optimized for single-page resume printing (210mm × 297mm)
-- **Single Center Timeline**: One clean vertical line as the main thread
+- **Left-Aligned Timeline**: Positioned to accommodate sidebars with minimal space for left events
 - **Left/Right Separation**: Small events on left, main content on right
-- **Simple Horizontal Lines**: No curves - just clean connections
-- **Minimal Styling**: Text notes for small events, detailed cards for milestones
-- **Subtle Color Palette**: Single-color pattern using subtle blue tints
+- **Refined Dots**: 5px dots with 2px white border and colored centers
+- **Hue-Based Coloring**: Each event gets unique color based on timeline position
+- **Modern Shadows**: Layered box-shadows instead of borders for depth
+- **Thin Refined Lines**: 1.5px connection lines with smooth gradients
+- **Smooth Animations**: Cubic-bezier transitions for professional feel
 - **Responsive**: Adapts to different screen sizes while maintaining elegance
 - **Print-Ready**: Optimized CSS for printing
 
 ## Design Philosophy
 
-The visualization occupies approximately 60% of the page content, serving as a clean timeline backdrop. The design is:
+The visualization uses modern 2030-style design principles:
 
-- **Simple**: Single timeline with straight horizontal connections
-- **Clean**: Clear left/right separation for different content types
-- **Subtle**: Minimal styling that doesn't demand attention
+- **Refined**: Thin lines, elegant dots with white borders, subtle shadows
+- **Smooth**: Cubic-bezier easing for natural interactions
+- **Colorful**: Hue-based spectrum coloring for visual interest
+- **Spaced**: Proper card spacing prevents visual clutter
 - **Professional**: Typography and spacing optimized for readability
-- **Intuitive**: Small events left, major milestones right
+- **Modern**: Gradient backgrounds, layered shadows, drop-shadows on SVG
 
 ## Structure
 
 - `index.html` - Main HTML structure
-- `styles.css` - Minimal styling with two content types
-- `script.js` - JavaScript for rendering timeline and events
+- `styles.css` - Modern refined styling with layered shadows
+- `script.js` - Timeline rendering with hue-based coloring
 
 ## Layout Concept
 
 ```
-Small Events (LEFT)         Timeline (CENTER)      Main Content (RIGHT)
+Small Events (LEFT)    Timeline (LEFT-ALIGNED)    Main Content (RIGHT)
 
-JS Canvas Library    ────●                           ●──── Bachelor - IT
-                                                            (full details)
-Bash Utils Library   ────●
+JS Canvas Library  ───●
+                                                   ●─── Bachelor - IT
+                                                        (full details, shadow)
+Bash Utils Library ───●
+                                                   
+                                                   ●─── Full-time Frontend Dev
+                                                        (full details, shadow)
+Timesheet auto     ───●
+```
 
-                                                     ●──── Full-time Frontend Dev
-                                                            (full details)
-Timesheet automation ────●
+## Color Modes
+
+The visualization supports two color modes via the `colorMode` config:
+
+### Hue Mode (Default)
+Each event gets a unique hue based on its position in the timeline:
+- Formula: `hue = (360 / total) * index`
+- Creates a vibrant spectrum across the timeline
+- Events are visually distinct
+
+### Mono Mode
+All events use the same base color:
+- Consistent blue theme
+- More subtle and traditional
+
+To switch modes, edit `treeConfig.colorMode` in `script.js`:
+```javascript
+colorMode: 'hue'  // or 'mono'
 ```
 
 ## Content Types
@@ -48,17 +72,20 @@ Timesheet automation ────●
 The visualization supports two placement options via the `side` property:
 
 ### Right Side - Main Content
-Major milestones like education and full-time work. Includes:
+Major milestones like education and full-time work. Features:
 - Title and year
 - Description paragraph
-- Technology stack tags
-- Full card styling
+- Technology stack tags with gradient backgrounds
+- Layered box-shadows for depth
+- 130px spacing between cards
+- Hover effects with smooth transitions
 
 ### Left Side - Small Events
-Side projects, certificates, libraries, interests. Includes:
-- Title and year only
-- Simple text styling
-- Minimal, unobtrusive display
+Side projects, certificates, libraries, interests. Features:
+- Simple p tag for title (blue colored)
+- p tag for year (gray)
+- Minimal styling
+- Right-aligned text
 
 ## Sample Data
 
@@ -85,7 +112,7 @@ The visualization includes five example experiences:
 
 ## Usage
 
-Simply open `index.html` in a web browser. The visualization will render automatically with clean left/right separation.
+Simply open `index.html` in a web browser. The visualization will render automatically with refined modern styling.
 
 ## Customization
 
@@ -100,7 +127,7 @@ To add your own experiences, edit the `experiences` array in `script.js`:
     description: 'Detailed description of the role and achievements.',
     stack: ['Tech1', 'Tech2', 'Tech3'],
     side: 'right',
-    timelinePos: 0
+    timelinePos: 0  // Used for vertical ordering
 }
 ```
 
@@ -118,28 +145,84 @@ To add your own experiences, edit the `experiences` array in `script.js`:
 ## Timeline Configuration
 
 The timeline can be configured in `treeConfig`:
-- `centerLineX`: X position of the central timeline (default: 300)
-- `startY`: Starting Y position (default: 50)
-- `rowGap`: Vertical spacing between events (default: 100)
-- `leftOffset`: Distance from timeline to left content (default: 250)
-- `rightOffset`: Distance from timeline to right content (default: 40)
+
+```javascript
+const treeConfig = {
+    timelineX: 180,           // Left-aligned position
+    startY: 50,               // Starting Y position
+    rowGap: 130,              // Spacing between main cards
+    leftOffset: 150,          // Distance to left content
+    rightOffset: 40,          // Distance to right content
+    dotRadius: 5,             // Dot outer radius
+    dotBorderWidth: 2,        // White border width
+    lineWidth: 1.5,           // Connection line width
+    timelineWidth: 2,         // Main timeline width
+    baseColor: '#7fa8c4',     // Fallback color (mono mode)
+    colorMode: 'hue'          // 'hue' or 'mono'
+};
+```
+
+## Modern Design Elements
+
+### Refined Dots
+- 5px radius with 2px white border
+- Colored inner circle (3px radius)
+- Subtle drop-shadow for depth
+- Hue-based or mono coloring
+
+### Layered Shadows
+Main cards use two shadow layers:
+- Primary: `0 2px 12px rgba(0, 0, 0, 0.06)`
+- Secondary: `0 1px 3px rgba(0, 0, 0, 0.04)`
+
+Hover state enhances depth:
+- Primary: `0 4px 20px rgba(0, 0, 0, 0.08)`
+- Secondary: `0 2px 6px rgba(0, 0, 0, 0.06)`
+
+### Smooth Transitions
+All interactions use cubic-bezier easing:
+```css
+transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+```
+
+### Gradient Backgrounds
+Tech stack tags feature subtle linear gradients:
+```css
+background: linear-gradient(135deg, 
+    rgba(127, 168, 196, 0.08) 0%, 
+    rgba(127, 168, 196, 0.12) 100%
+);
+```
 
 ## Color Scheme
 
-The visualization uses a subtle blue color palette:
-- Timeline: `#b8d0e0`
-- Dots: `#7fa8c4`
-- Main titles: `#4a7c9e`
-- Text: `#5a6b7a` / `#6b92ab`
+### Hue Mode Colors
+Each event gets a unique hue:
+- Event 0: Red (0°)
+- Event 1: Orange (72°)
+- Event 2: Yellow-Green (144°)
+- Event 3: Cyan (216°)
+- Event 4: Purple (288°)
 
-All colors are chosen to be subtle and professional, supporting readability while adding visual elegance.
+Saturation: 45%, Lightness: 60%
+
+### Mono Mode Color
+- Base: `#7fa8c4` (soft blue)
+
+### Supporting Colors
+- Timeline: `#d5dfe6`
+- Text Primary: `#2c3e50`
+- Text Secondary: `#5a6b7a`
+- Text Muted: `#8996a3`
 
 ## Design Notes
 
-This design deliberately simplifies complex branching structures:
-- No curved lines (too complex to maintain)
-- No concurrent timelines (not needed for clarity)
-- Simple horizontal connections for easy reading
-- Clear left/right separation for content hierarchy
+This design deliberately emphasizes modern refinement:
+- No borders on cards (shadows only)
+- Thin refined lines throughout
+- Proper spacing between elements
+- Hue-based coloring for visual interest
+- Smooth transitions for professional feel
+- Layered shadows for depth perception
 
-The result is a clean, professional timeline that clearly shows your career progression with appropriate emphasis on major milestones while keeping smaller events visible but unobtrusive.
+The result is a clean, modern timeline that clearly shows career progression with appropriate emphasis on major milestones while keeping smaller events visible but minimal. Perfect for a contemporary resume that stands out without being overwhelming.
