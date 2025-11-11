@@ -48,7 +48,7 @@ body {
 .timeline-container {
     position: relative;
     width: 100%;
-    min-height: 500px;
+    min-height: 650px;
 }
 
 .tree-canvas {
@@ -83,11 +83,48 @@ body {
 }
 
 .experience-node.branch-education {
-    border-left-color: #6b92ab;
+    border-left-color: #7fa8c4;
 }
 
 .experience-node.branch-professional {
+    border-left-color: #6b92ab;
+}
+
+.experience-node.branch-personal-creative {
     border-left-color: #8eb3c9;
+}
+
+.experience-node.branch-personal-tools {
+    border-left-color: #9fb8cc;
+}
+
+/* Sub-branch notes - minimal style */
+.sub-branch-note {
+    position: absolute;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(74, 124, 158, 0.06);
+    max-width: 180px;
+    transition: all 0.2s ease;
+}
+
+.sub-branch-note:hover {
+    box-shadow: 0 1px 4px rgba(74, 124, 158, 0.12);
+}
+
+.note-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b92ab;
+    margin-bottom: 2px;
+}
+
+.note-detail {
+    font-size: 10px;
+    color: #95a5a6;
+    font-style: italic;
+    font-weight: 300;
 }
 
 .node-header {
