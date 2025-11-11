@@ -17,6 +17,7 @@ alias t2m='tree --du -h -L 2 | grep M]'
 
 alias python="python3"
 alias pip="pip3"
+alias py="python3"
 
 alias yd="yarn dev"
 alias yqrn="yarn"
