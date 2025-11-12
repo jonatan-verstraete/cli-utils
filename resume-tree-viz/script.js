@@ -61,76 +61,8 @@ function drawTree(svg) {
     const startY = timelineConfig.startY - 20;
     const endY = timelineData[timelineData.length - 1].calculatedY + 50;
     
-    // Create defs for gradients and filters
+    // Create defs for filters
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    
-    // Create gradient for main timeline (darker neutral blue with gradient)
-    const gradientId = 'timelineGradient';
-    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    gradient.setAttribute('id', gradientId);
-    gradient.setAttribute('x1', '0%');
-    gradient.setAttribute('y1', '0%');
-    gradient.setAttribute('x2', '0%');
-    gradient.setAttribute('y2', '100%');
-    
-    const fadeLength = 40; // pixels to fade at ends
-    const totalLength = endY - startY;
-    
-    // Base color: darker neutral blue (low saturation grayscale-ish)
-    const baseColor = 'hsl(210, 12%, 45%)'; // Darker, neutral blue-gray
-    
-    // Top fade
-    const topStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    topStop.setAttribute('offset', '0%');
-    topStop.setAttribute('stop-color', baseColor);
-    topStop.setAttribute('stop-opacity', '0.2');
-    gradient.appendChild(topStop);
-    
-    const topFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    topFadeStop.setAttribute('offset', `${(fadeLength / totalLength) * 100}%`);
-    topFadeStop.setAttribute('stop-color', baseColor);
-    topFadeStop.setAttribute('stop-opacity', '0.8');
-    gradient.appendChild(topFadeStop);
-    
-    // Event color influences (subtle variations in the blue gradient)
-    timelineData.forEach((event, index) => {
-        const eventColor = getEventColor(index, totalEvents);
-        const yPercent = ((event.calculatedY - startY) / totalLength) * 100;
-        
-        // Add color stops slightly before and after each event
-        const colorStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        colorStop1.setAttribute('offset', `${Math.max(0, yPercent - 2)}%`);
-        colorStop1.setAttribute('stop-color', baseColor);
-        colorStop1.setAttribute('stop-opacity', '0.8');
-        gradient.appendChild(colorStop1);
-        
-        const colorStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        colorStop2.setAttribute('offset', `${yPercent}%`);
-        colorStop2.setAttribute('stop-color', eventColor);
-        colorStop2.setAttribute('stop-opacity', '0.7');
-        gradient.appendChild(colorStop2);
-        
-        const colorStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        colorStop3.setAttribute('offset', `${Math.min(100, yPercent + 2)}%`);
-        colorStop3.setAttribute('stop-color', baseColor);
-        colorStop3.setAttribute('stop-opacity', '0.8');
-        gradient.appendChild(colorStop3);
-    });
-    
-    // Bottom fade
-    const bottomFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    bottomFadeStop.setAttribute('offset', `${100 - (fadeLength / totalLength) * 100}%`);
-    bottomFadeStop.setAttribute('stop-color', baseColor);
-    bottomFadeStop.setAttribute('stop-opacity', '0.8');
-    gradient.appendChild(bottomFadeStop);
-    
-    const bottomStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    bottomStop.setAttribute('offset', '100%');
-    bottomStop.setAttribute('stop-color', baseColor);
-    bottomStop.setAttribute('stop-opacity', '0.2');
-    gradient.appendChild(bottomStop);
-    
-    defs.appendChild(gradient);
     
     // Create subtle shadow filter for dots
     const dotFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
@@ -150,13 +82,14 @@ function drawTree(svg) {
     defs.appendChild(dotFilter);
     svg.appendChild(defs);
     
-    // Draw main vertical timeline with gradient
+    // Draw main vertical timeline - solid dark thin line
     const timeline = createPath([
         `M ${timelineConfig.timelineX} ${startY}`,
         `L ${timelineConfig.timelineX} ${endY}`
     ]);
-    timeline.style.stroke = `url(#${gradientId})`;
-    timeline.style.strokeWidth = '2';
+    timeline.style.stroke = '#333'; // Dark black/gray
+    timeline.style.strokeWidth = '1.5';
+    timeline.style.opacity = '0.5';
     svg.appendChild(timeline);
     
     // Draw events
