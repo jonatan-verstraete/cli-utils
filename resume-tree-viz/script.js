@@ -6,7 +6,13 @@
 function getEventColor(index, total) {
     if (timelineConfig.colorMode === 'mono') {
         return timelineConfig.baseColor;
+    } else if (timelineConfig.colorMode === 'blueGradient') {
+        // Grayscale blue gradient: darker to lighter blue with low saturation
+        const lightness = 35 + (index / (total - 1)) * 25; // 35% to 60%
+        const saturation = 15 + (index / (total - 1)) * 15; // 15% to 30%
+        return `hsl(210, ${saturation}%, ${lightness}%)`;
     } else {
+        // Original hue mode
         const hue = (360 / total) * index;
         return `hsl(${hue}, 45%, 60%)`;
     }
@@ -58,7 +64,7 @@ function drawTree(svg) {
     // Create defs for gradients and filters
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     
-    // Create gradient for main timeline (fades at ends and blends with event colors)
+    // Create gradient for main timeline (darker neutral blue with gradient)
     const gradientId = 'timelineGradient';
     const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
     gradient.setAttribute('id', gradientId);
@@ -70,55 +76,58 @@ function drawTree(svg) {
     const fadeLength = 40; // pixels to fade at ends
     const totalLength = endY - startY;
     
+    // Base color: darker neutral blue (low saturation grayscale-ish)
+    const baseColor = 'hsl(210, 12%, 45%)'; // Darker, neutral blue-gray
+    
     // Top fade
     const topStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     topStop.setAttribute('offset', '0%');
-    topStop.setAttribute('stop-color', '#b8d0e0');
-    topStop.setAttribute('stop-opacity', '0.1');
+    topStop.setAttribute('stop-color', baseColor);
+    topStop.setAttribute('stop-opacity', '0.2');
     gradient.appendChild(topStop);
     
     const topFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     topFadeStop.setAttribute('offset', `${(fadeLength / totalLength) * 100}%`);
-    topFadeStop.setAttribute('stop-color', '#b8d0e0');
-    topFadeStop.setAttribute('stop-opacity', '0.6');
+    topFadeStop.setAttribute('stop-color', baseColor);
+    topFadeStop.setAttribute('stop-opacity', '0.8');
     gradient.appendChild(topFadeStop);
     
-    // Event color influences
+    // Event color influences (subtle variations in the blue gradient)
     timelineData.forEach((event, index) => {
         const eventColor = getEventColor(index, totalEvents);
         const yPercent = ((event.calculatedY - startY) / totalLength) * 100;
         
         // Add color stops slightly before and after each event
         const colorStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        colorStop1.setAttribute('offset', `${Math.max(0, yPercent - 3)}%`);
-        colorStop1.setAttribute('stop-color', '#b8d0e0');
-        colorStop1.setAttribute('stop-opacity', '0.6');
+        colorStop1.setAttribute('offset', `${Math.max(0, yPercent - 2)}%`);
+        colorStop1.setAttribute('stop-color', baseColor);
+        colorStop1.setAttribute('stop-opacity', '0.8');
         gradient.appendChild(colorStop1);
         
         const colorStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         colorStop2.setAttribute('offset', `${yPercent}%`);
         colorStop2.setAttribute('stop-color', eventColor);
-        colorStop2.setAttribute('stop-opacity', '0.5');
+        colorStop2.setAttribute('stop-opacity', '0.7');
         gradient.appendChild(colorStop2);
         
         const colorStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        colorStop3.setAttribute('offset', `${Math.min(100, yPercent + 3)}%`);
-        colorStop3.setAttribute('stop-color', '#b8d0e0');
-        colorStop3.setAttribute('stop-opacity', '0.6');
+        colorStop3.setAttribute('offset', `${Math.min(100, yPercent + 2)}%`);
+        colorStop3.setAttribute('stop-color', baseColor);
+        colorStop3.setAttribute('stop-opacity', '0.8');
         gradient.appendChild(colorStop3);
     });
     
     // Bottom fade
     const bottomFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     bottomFadeStop.setAttribute('offset', `${100 - (fadeLength / totalLength) * 100}%`);
-    bottomFadeStop.setAttribute('stop-color', '#b8d0e0');
-    bottomFadeStop.setAttribute('stop-opacity', '0.6');
+    bottomFadeStop.setAttribute('stop-color', baseColor);
+    bottomFadeStop.setAttribute('stop-opacity', '0.8');
     gradient.appendChild(bottomFadeStop);
     
     const bottomStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     bottomStop.setAttribute('offset', '100%');
-    bottomStop.setAttribute('stop-color', '#b8d0e0');
-    bottomStop.setAttribute('stop-opacity', '0.1');
+    bottomStop.setAttribute('stop-color', baseColor);
+    bottomStop.setAttribute('stop-opacity', '0.2');
     gradient.appendChild(bottomStop);
     
     defs.appendChild(gradient);
@@ -147,7 +156,7 @@ function drawTree(svg) {
         `L ${timelineConfig.timelineX} ${endY}`
     ]);
     timeline.style.stroke = `url(#${gradientId})`;
-    timeline.style.strokeWidth = '1.5';
+    timeline.style.strokeWidth = '2';
     svg.appendChild(timeline);
     
     // Draw events

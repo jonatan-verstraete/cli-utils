@@ -78,7 +78,7 @@ const timelineConfig = {
     lineWidth: 1.5,
     timelineWidth: 2,
     
-    // Color mode: 'hue' for spectrum colors, 'mono' for single color
-    colorMode: 'hue',
+    // Color mode: 'hue' for spectrum colors, 'mono' for single color, 'blueGradient' for grayscale blue gradient
+    colorMode: 'blueGradient',
     baseColor: '#7fa8c4'
 };
