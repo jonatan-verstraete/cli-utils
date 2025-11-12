@@ -26,13 +26,13 @@ const timelineData = [
     {
         id: 'canvas-lib',
         title: 'JS Canvas Projects Library',
-        year: '2017 - Present',
+        year: '2017',
         side: 'left'
     },
     {
         id: 'frontend-dev',
-        title: 'Full-time Frontend Dev',
-        year: '2019 - Present',
+        title: 'Full-time Frontend Engineer',
+        year: '2019-2025',
         side: 'right',
         description: 'Building scalable, performant web applications with modern JavaScript frameworks. Focus on user experience and clean code architecture.',
         stack: ['TypeScript', 'React', 'Vue.js', 'CSS3', 'Webpack', 'Jest', 'GraphQL']
@@ -40,7 +40,7 @@ const timelineData = [
     {
         id: 'bash-utils',
         title: 'Bash Utils Library',
-        year: '2020 - Present',
+        year: '2020',
         side: 'left'
     },
     {
@@ -63,10 +63,12 @@ const timelineConfig = {
     eventSpacing: 100,
     
     // Space for left events (from timeline)
-    leftOffset: 100,
-    
+    leftOffset: 10,
     // Space for right events (from timeline)
-    rightOffset: 60,
+    rightOffset: 55,
+    // length beyond offset
+    leftLineLength: 20,
+    rightLineLength: 10,
     
     // Dot styling
     dotRadius: 5,

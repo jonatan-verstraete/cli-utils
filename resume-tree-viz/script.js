@@ -63,7 +63,7 @@ function drawTree(svg) {
     ]);
     timeline.style.stroke = '#d5dfe6';
     timeline.style.strokeWidth = timelineConfig.timelineWidth;
-    timeline.style.opacity = '0.5';
+    // timeline.style.opacity = '0.5';
     svg.appendChild(timeline);
     
     // Draw events
@@ -86,13 +86,13 @@ function drawTree(svg) {
         dotInner.setAttribute('cy', y);
         dotInner.setAttribute('r', timelineConfig.dotRadius - timelineConfig.dotBorderWidth);
         dotInner.style.fill = eventColor;
-        dotInner.style.opacity = '0.9';
+        // dotInner.style.opacity = '0.9';
         svg.appendChild(dotInner);
         
         // Draw horizontal line to content
         const lineEndX = event.side === 'right' 
-            ? x + timelineConfig.rightOffset 
-            : x - timelineConfig.leftOffset;
+            ? x + timelineConfig.rightOffset + timelineConfig.rightLineLength
+            : x - timelineConfig.leftOffset - timelineConfig.leftLineLength;
         
         const connectLine = createPath([
             `M ${x} ${y}`,
@@ -100,7 +100,10 @@ function drawTree(svg) {
         ]);
         connectLine.style.stroke = eventColor;
         connectLine.style.strokeWidth = timelineConfig.lineWidth;
-        connectLine.style.opacity = '0.3';
+        // connectLine.style.opacity = '0.3';
+        connectLine.style.height = '20px';
+        // TODO: need to fade out the line, might need to use difs or other svg structure to accomplish this.
+        // connectLine.style.background = `linear-gradient(90deg,${eventColor} 85%, rgba(255, 255, 255, 0) 100%);`
         connectLine.setAttribute('data-event-id', event.id);
         svg.appendChild(connectLine);
         
@@ -109,6 +112,7 @@ function drawTree(svg) {
         dateText.setAttribute('x', event.side === 'right' ? x + 10 : x - 10);
         dateText.setAttribute('y', y - 5);
         dateText.setAttribute('text-anchor', event.side === 'right' ? 'start' : 'end');
+        dateText.classList.add('timeline-date')
         dateText.style.fontSize = '10px';
         dateText.style.fill = '#95a5a6';
         dateText.style.fontWeight = '300';
@@ -138,7 +142,7 @@ function renderExperiences(container) {
             element.setAttribute('data-id', event.id);
             
             // Position: title above line, content below
-            const contentStartY = y;
+            const contentStartY = y - 15;
             element.style.left = `${timelineConfig.timelineX + timelineConfig.rightOffset}px`;
             element.style.top = `${contentStartY}px`;
             
@@ -161,7 +165,7 @@ function renderExperiences(container) {
             
             // Position: aligned to line, text above line
             element.style.right = `${document.querySelector('.timeline-container').offsetWidth - timelineConfig.timelineX + timelineConfig.leftOffset}px`;
-            element.style.top = `${y - 8}px`;
+            element.style.top = `${y + 2}px`;
             
             element.innerHTML = `<p class="event-title-small">${event.title}</p>`;
             
