@@ -73,14 +73,14 @@ function drawTree(svg) {
     // Top fade
     const topStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     topStop.setAttribute('offset', '0%');
-    topStop.setAttribute('stop-color', '#d5dfe6');
-    topStop.setAttribute('stop-opacity', '0');
+    topStop.setAttribute('stop-color', '#b8d0e0');
+    topStop.setAttribute('stop-opacity', '0.1');
     gradient.appendChild(topStop);
     
     const topFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     topFadeStop.setAttribute('offset', `${(fadeLength / totalLength) * 100}%`);
-    topFadeStop.setAttribute('stop-color', '#d5dfe6');
-    topFadeStop.setAttribute('stop-opacity', '0.4');
+    topFadeStop.setAttribute('stop-color', '#b8d0e0');
+    topFadeStop.setAttribute('stop-opacity', '0.6');
     gradient.appendChild(topFadeStop);
     
     // Event color influences
@@ -91,34 +91,34 @@ function drawTree(svg) {
         // Add color stops slightly before and after each event
         const colorStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         colorStop1.setAttribute('offset', `${Math.max(0, yPercent - 3)}%`);
-        colorStop1.setAttribute('stop-color', '#d5dfe6');
-        colorStop1.setAttribute('stop-opacity', '0.4');
+        colorStop1.setAttribute('stop-color', '#b8d0e0');
+        colorStop1.setAttribute('stop-opacity', '0.6');
         gradient.appendChild(colorStop1);
         
         const colorStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         colorStop2.setAttribute('offset', `${yPercent}%`);
         colorStop2.setAttribute('stop-color', eventColor);
-        colorStop2.setAttribute('stop-opacity', '0.35');
+        colorStop2.setAttribute('stop-opacity', '0.5');
         gradient.appendChild(colorStop2);
         
         const colorStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         colorStop3.setAttribute('offset', `${Math.min(100, yPercent + 3)}%`);
-        colorStop3.setAttribute('stop-color', '#d5dfe6');
-        colorStop3.setAttribute('stop-opacity', '0.4');
+        colorStop3.setAttribute('stop-color', '#b8d0e0');
+        colorStop3.setAttribute('stop-opacity', '0.6');
         gradient.appendChild(colorStop3);
     });
     
     // Bottom fade
     const bottomFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     bottomFadeStop.setAttribute('offset', `${100 - (fadeLength / totalLength) * 100}%`);
-    bottomFadeStop.setAttribute('stop-color', '#d5dfe6');
-    bottomFadeStop.setAttribute('stop-opacity', '0.4');
+    bottomFadeStop.setAttribute('stop-color', '#b8d0e0');
+    bottomFadeStop.setAttribute('stop-opacity', '0.6');
     gradient.appendChild(bottomFadeStop);
     
     const bottomStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     bottomStop.setAttribute('offset', '100%');
-    bottomStop.setAttribute('stop-color', '#d5dfe6');
-    bottomStop.setAttribute('stop-opacity', '0');
+    bottomStop.setAttribute('stop-color', '#b8d0e0');
+    bottomStop.setAttribute('stop-opacity', '0.1');
     gradient.appendChild(bottomStop);
     
     defs.appendChild(gradient);
