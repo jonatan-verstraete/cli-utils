@@ -87,7 +87,7 @@ function drawTree(svg) {
         `M ${timelineConfig.timelineX} ${startY}`,
         `L ${timelineConfig.timelineX} ${endY}`
     ]);
-    timeline.style.stroke = '#333'; // Dark black/gray
+    timeline.style.stroke = '#333';
     timeline.style.strokeWidth = '1.5';
     timeline.style.opacity = '0.5';
     svg.appendChild(timeline);
@@ -98,60 +98,19 @@ function drawTree(svg) {
         const y = event.calculatedY;
         const eventColor = getEventColor(index, totalEvents);
         
-        // Create gradient for horizontal line (fades at tip)
-        const lineGradientId = `lineGradient-${event.id}`;
-        const lineGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        lineGradient.setAttribute('id', lineGradientId);
+        // Simple horizontal line - 10px each side
+        const lineLength = 10;
+        const lineEndX = event.side === 'right' ? x + lineLength : x - lineLength;
         
-        const lineEndX = event.side === 'right' 
-            ? x + timelineConfig.rightOffset + timelineConfig.rightLineLength
-            : x - timelineConfig.leftOffset - timelineConfig.leftLineLength;
-        
-        if (event.side === 'right') {
-            lineGradient.setAttribute('x1', '0%');
-            lineGradient.setAttribute('x2', '100%');
-            
-            const startStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            startStop.setAttribute('offset', '0%');
-            startStop.setAttribute('stop-color', eventColor);
-            startStop.setAttribute('stop-opacity', '0.25');
-            lineGradient.appendChild(startStop);
-            
-            const midStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            midStop.setAttribute('offset', '80%');
-            midStop.setAttribute('stop-color', eventColor);
-            midStop.setAttribute('stop-opacity', '0.15');
-            lineGradient.appendChild(midStop);
-            
-            const endStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            endStop.setAttribute('offset', '100%');
-            endStop.setAttribute('stop-color', eventColor);
-            endStop.setAttribute('stop-opacity', '0');
-            lineGradient.appendChild(endStop);
-        } else {
-            lineGradient.setAttribute('x1', '100%');
-            lineGradient.setAttribute('x2', '0%');
-            
-            const startStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            startStop.setAttribute('offset', '0%');
-            startStop.setAttribute('stop-color', eventColor);
-            startStop.setAttribute('stop-opacity', '0.25');
-            lineGradient.appendChild(startStop);
-            
-            const midStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            midStop.setAttribute('offset', '80%');
-            midStop.setAttribute('stop-color', eventColor);
-            midStop.setAttribute('stop-opacity', '0.15');
-            lineGradient.appendChild(midStop);
-            
-            const endStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            endStop.setAttribute('offset', '100%');
-            endStop.setAttribute('stop-color', eventColor);
-            endStop.setAttribute('stop-opacity', '0');
-            lineGradient.appendChild(endStop);
-        }
-        
-        defs.appendChild(lineGradient);
+        const connectLine = createPath([
+            `M ${x} ${y}`,
+            `L ${lineEndX} ${y}`
+        ]);
+        connectLine.style.stroke = eventColor;
+        connectLine.style.strokeWidth = '1.5';
+        connectLine.style.opacity = '0.4';
+        connectLine.setAttribute('data-event-id', event.id);
+        svg.appendChild(connectLine);
         
         // Draw refined dot with white border and shadow
         const dotOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -169,22 +128,11 @@ function drawTree(svg) {
         dotInner.style.fill = eventColor;
         svg.appendChild(dotInner);
         
-        // Draw horizontal line with gradient fade
-        const connectLine = createPath([
-            `M ${x} ${y}`,
-            `L ${lineEndX} ${y}`
-        ]);
-        connectLine.style.stroke = `url(#${lineGradientId})`;
-        connectLine.style.strokeWidth = '1';
-        connectLine.setAttribute('data-event-id', event.id);
-        svg.appendChild(connectLine);
-        
         // Add date text on the line
         const dateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        dateText.setAttribute('x', event.side === 'right' ? x + 10 : x - 10);
+        dateText.setAttribute('x', event.side === 'right' ? x + 15 : x - 15);
         dateText.setAttribute('y', y - 5);
         dateText.setAttribute('text-anchor', event.side === 'right' ? 'start' : 'end');
-        dateText.classList.add('timeline-date');
         dateText.style.fontSize = '10px';
         dateText.style.fill = '#95a5a6';
         dateText.style.fontWeight = '300';
@@ -215,7 +163,7 @@ function renderExperiences(container) {
             
             // Position: title above line, content below
             const contentStartY = y - 15;
-            element.style.left = `${timelineConfig.timelineX + timelineConfig.rightOffset}px`;
+            element.style.left = `${timelineConfig.timelineX + 20}px`;
             element.style.top = `${contentStartY}px`;
             
             element.innerHTML = `
@@ -236,7 +184,7 @@ function renderExperiences(container) {
             element.setAttribute('data-id', event.id);
             
             // Position: aligned to line, text above line
-            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - timelineConfig.timelineX + timelineConfig.leftOffset}px`;
+            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - timelineConfig.timelineX + 20}px`;
             element.style.top = `${y + 2}px`;
             
             element.innerHTML = `<p class="event-title-small">${event.title}</p>`;

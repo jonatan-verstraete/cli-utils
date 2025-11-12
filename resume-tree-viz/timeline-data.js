@@ -62,21 +62,9 @@ const timelineConfig = {
     // Vertical spacing between events
     eventSpacing: 100,
     
-    // Space for left events (from timeline)
-    leftOffset: 10,
-    // Space for right events (from timeline)
-    rightOffset: 55,
-    // length beyond offset
-    leftLineLength: 20,
-    rightLineLength: 10,
-    
     // Dot styling
     dotRadius: 5,
     dotBorderWidth: 2,
-    
-    // Line styling
-    lineWidth: 1.5,
-    timelineWidth: 2,
     
     // Color mode: 'hue' for spectrum colors, 'mono' for single color, 'blueGradient' for grayscale blue gradient
     colorMode: 'blueGradient',
