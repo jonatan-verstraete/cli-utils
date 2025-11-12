@@ -52,18 +52,102 @@ function drawTree(svg) {
     svg.innerHTML = '';
     
     const totalEvents = timelineData.length;
-    
-    // Draw main vertical timeline
     const startY = timelineConfig.startY - 20;
     const endY = timelineData[timelineData.length - 1].calculatedY + 50;
     
+    // Create defs for gradients and filters
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    
+    // Create gradient for main timeline (fades at ends and blends with event colors)
+    const gradientId = 'timelineGradient';
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', gradientId);
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '0%');
+    gradient.setAttribute('y2', '100%');
+    
+    const fadeLength = 40; // pixels to fade at ends
+    const totalLength = endY - startY;
+    
+    // Top fade
+    const topStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    topStop.setAttribute('offset', '0%');
+    topStop.setAttribute('stop-color', '#d5dfe6');
+    topStop.setAttribute('stop-opacity', '0');
+    gradient.appendChild(topStop);
+    
+    const topFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    topFadeStop.setAttribute('offset', `${(fadeLength / totalLength) * 100}%`);
+    topFadeStop.setAttribute('stop-color', '#d5dfe6');
+    topFadeStop.setAttribute('stop-opacity', '0.4');
+    gradient.appendChild(topFadeStop);
+    
+    // Event color influences
+    timelineData.forEach((event, index) => {
+        const eventColor = getEventColor(index, totalEvents);
+        const yPercent = ((event.calculatedY - startY) / totalLength) * 100;
+        
+        // Add color stops slightly before and after each event
+        const colorStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        colorStop1.setAttribute('offset', `${Math.max(0, yPercent - 3)}%`);
+        colorStop1.setAttribute('stop-color', '#d5dfe6');
+        colorStop1.setAttribute('stop-opacity', '0.4');
+        gradient.appendChild(colorStop1);
+        
+        const colorStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        colorStop2.setAttribute('offset', `${yPercent}%`);
+        colorStop2.setAttribute('stop-color', eventColor);
+        colorStop2.setAttribute('stop-opacity', '0.35');
+        gradient.appendChild(colorStop2);
+        
+        const colorStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        colorStop3.setAttribute('offset', `${Math.min(100, yPercent + 3)}%`);
+        colorStop3.setAttribute('stop-color', '#d5dfe6');
+        colorStop3.setAttribute('stop-opacity', '0.4');
+        gradient.appendChild(colorStop3);
+    });
+    
+    // Bottom fade
+    const bottomFadeStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    bottomFadeStop.setAttribute('offset', `${100 - (fadeLength / totalLength) * 100}%`);
+    bottomFadeStop.setAttribute('stop-color', '#d5dfe6');
+    bottomFadeStop.setAttribute('stop-opacity', '0.4');
+    gradient.appendChild(bottomFadeStop);
+    
+    const bottomStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    bottomStop.setAttribute('offset', '100%');
+    bottomStop.setAttribute('stop-color', '#d5dfe6');
+    bottomStop.setAttribute('stop-opacity', '0');
+    gradient.appendChild(bottomStop);
+    
+    defs.appendChild(gradient);
+    
+    // Create subtle shadow filter for dots
+    const dotFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    dotFilter.setAttribute('id', 'dotShadow');
+    dotFilter.setAttribute('x', '-100%');
+    dotFilter.setAttribute('y', '-100%');
+    dotFilter.setAttribute('width', '300%');
+    dotFilter.setAttribute('height', '300%');
+    
+    const feDropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+    feDropShadow.setAttribute('dx', '0');
+    feDropShadow.setAttribute('dy', '1');
+    feDropShadow.setAttribute('stdDeviation', '1.2');
+    feDropShadow.setAttribute('flood-opacity', '0.2');
+    dotFilter.appendChild(feDropShadow);
+    
+    defs.appendChild(dotFilter);
+    svg.appendChild(defs);
+    
+    // Draw main vertical timeline with gradient
     const timeline = createPath([
         `M ${timelineConfig.timelineX} ${startY}`,
         `L ${timelineConfig.timelineX} ${endY}`
     ]);
-    timeline.style.stroke = '#d5dfe6';
-    timeline.style.strokeWidth = timelineConfig.timelineWidth;
-    // timeline.style.opacity = '0.5';
+    timeline.style.stroke = `url(#${gradientId})`;
+    timeline.style.strokeWidth = '1.5';
     svg.appendChild(timeline);
     
     // Draw events
@@ -72,13 +156,68 @@ function drawTree(svg) {
         const y = event.calculatedY;
         const eventColor = getEventColor(index, totalEvents);
         
-        // Draw refined dot with white border
+        // Create gradient for horizontal line (fades at tip)
+        const lineGradientId = `lineGradient-${event.id}`;
+        const lineGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        lineGradient.setAttribute('id', lineGradientId);
+        
+        const lineEndX = event.side === 'right' 
+            ? x + timelineConfig.rightOffset + timelineConfig.rightLineLength
+            : x - timelineConfig.leftOffset - timelineConfig.leftLineLength;
+        
+        if (event.side === 'right') {
+            lineGradient.setAttribute('x1', '0%');
+            lineGradient.setAttribute('x2', '100%');
+            
+            const startStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            startStop.setAttribute('offset', '0%');
+            startStop.setAttribute('stop-color', eventColor);
+            startStop.setAttribute('stop-opacity', '0.25');
+            lineGradient.appendChild(startStop);
+            
+            const midStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            midStop.setAttribute('offset', '80%');
+            midStop.setAttribute('stop-color', eventColor);
+            midStop.setAttribute('stop-opacity', '0.15');
+            lineGradient.appendChild(midStop);
+            
+            const endStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            endStop.setAttribute('offset', '100%');
+            endStop.setAttribute('stop-color', eventColor);
+            endStop.setAttribute('stop-opacity', '0');
+            lineGradient.appendChild(endStop);
+        } else {
+            lineGradient.setAttribute('x1', '100%');
+            lineGradient.setAttribute('x2', '0%');
+            
+            const startStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            startStop.setAttribute('offset', '0%');
+            startStop.setAttribute('stop-color', eventColor);
+            startStop.setAttribute('stop-opacity', '0.25');
+            lineGradient.appendChild(startStop);
+            
+            const midStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            midStop.setAttribute('offset', '80%');
+            midStop.setAttribute('stop-color', eventColor);
+            midStop.setAttribute('stop-opacity', '0.15');
+            lineGradient.appendChild(midStop);
+            
+            const endStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            endStop.setAttribute('offset', '100%');
+            endStop.setAttribute('stop-color', eventColor);
+            endStop.setAttribute('stop-opacity', '0');
+            lineGradient.appendChild(endStop);
+        }
+        
+        defs.appendChild(lineGradient);
+        
+        // Draw refined dot with white border and shadow
         const dotOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         dotOuter.setAttribute('cx', x);
         dotOuter.setAttribute('cy', y);
         dotOuter.setAttribute('r', timelineConfig.dotRadius);
         dotOuter.style.fill = '#ffffff';
-        dotOuter.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))';
+        dotOuter.style.filter = 'url(#dotShadow)';
         svg.appendChild(dotOuter);
         
         const dotInner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -86,33 +225,24 @@ function drawTree(svg) {
         dotInner.setAttribute('cy', y);
         dotInner.setAttribute('r', timelineConfig.dotRadius - timelineConfig.dotBorderWidth);
         dotInner.style.fill = eventColor;
-        // dotInner.style.opacity = '0.9';
         svg.appendChild(dotInner);
         
-        // Draw horizontal line to content
-        const lineEndX = event.side === 'right' 
-            ? x + timelineConfig.rightOffset + timelineConfig.rightLineLength
-            : x - timelineConfig.leftOffset - timelineConfig.leftLineLength;
-        
+        // Draw horizontal line with gradient fade
         const connectLine = createPath([
             `M ${x} ${y}`,
             `L ${lineEndX} ${y}`
         ]);
-        connectLine.style.stroke = eventColor;
-        connectLine.style.strokeWidth = timelineConfig.lineWidth;
-        // connectLine.style.opacity = '0.3';
-        connectLine.style.height = '20px';
-        // TODO: need to fade out the line, might need to use difs or other svg structure to accomplish this.
-        // connectLine.style.background = `linear-gradient(90deg,${eventColor} 85%, rgba(255, 255, 255, 0) 100%);`
+        connectLine.style.stroke = `url(#${lineGradientId})`;
+        connectLine.style.strokeWidth = '1';
         connectLine.setAttribute('data-event-id', event.id);
         svg.appendChild(connectLine);
         
-        // Add date text on the line (SVG text)
+        // Add date text on the line
         const dateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         dateText.setAttribute('x', event.side === 'right' ? x + 10 : x - 10);
         dateText.setAttribute('y', y - 5);
         dateText.setAttribute('text-anchor', event.side === 'right' ? 'start' : 'end');
-        dateText.classList.add('timeline-date')
+        dateText.classList.add('timeline-date');
         dateText.style.fontSize = '10px';
         dateText.style.fill = '#95a5a6';
         dateText.style.fontWeight = '300';
