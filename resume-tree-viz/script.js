@@ -93,13 +93,13 @@ function drawTree(svg) {
     svg.appendChild(timeline);
     
     // Draw events
-    timelineData.forEach((event, index) => {
+    timelineData.forEach((event, index, arr) => {
         const x = event.calculatedX;
         const y = event.calculatedY;
         const eventColor = getEventColor(index, totalEvents);
         
         // Simple horizontal line - 10px each side
-        const lineLength = 10;
+        const lineLength = event.side === 'right' ? 20: 60
         const lineEndX = event.side === 'right' ? x + lineLength : x - lineLength;
         
         const connectLine = createPath([
@@ -128,16 +128,18 @@ function drawTree(svg) {
         dotInner.style.fill = eventColor;
         svg.appendChild(dotInner);
         
-        // Add date text on the line
-        const dateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        dateText.setAttribute('x', event.side === 'right' ? x + 15 : x - 15);
-        dateText.setAttribute('y', y - 5);
-        dateText.setAttribute('text-anchor', event.side === 'right' ? 'start' : 'end');
-        dateText.style.fontSize = '10px';
-        dateText.style.fill = '#95a5a6';
-        dateText.style.fontWeight = '300';
-        dateText.textContent = event.year;
-        svg.appendChild(dateText);
+        // // Add date text on the line
+        // const dateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        // // dateText.setAttribute('x', event.side === 'right' ? x + 15 : x - 15);
+        // dateText.setAttribute('x', event.side === 'right' ? x + 5 : x - 5);
+
+        // dateText.setAttribute('y', y - 5);
+        // dateText.setAttribute('text-anchor', event.side === 'right' ? 'start' : 'end');
+        // dateText.style.fontSize = '10px';
+        // dateText.style.fill = '#95a5a6';
+        // dateText.style.fontWeight = '300';
+        // dateText.textContent = event.year;
+        // svg.appendChild(dateText);
     });
 }
 
@@ -162,12 +164,13 @@ function renderExperiences(container) {
             element.setAttribute('data-id', event.id);
             
             // Position: title above line, content below
-            const contentStartY = y - 15;
-            element.style.left = `${timelineConfig.timelineX + 20}px`;
+            const contentStartY = y - 18;
+            element.style.left = `${timelineConfig.timelineX + 5}px`;
             element.style.top = `${contentStartY}px`;
             
             element.innerHTML = `
                 <h3 class="event-title">${event.title}</h3>
+                <div class="event-date">${event.date}</div>
                 <div class="event-description">${event.description}</div>
                 ${event.stack ? `
                     <div class="event-stack">
@@ -184,8 +187,8 @@ function renderExperiences(container) {
             element.setAttribute('data-id', event.id);
             
             // Position: aligned to line, text above line
-            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - timelineConfig.timelineX + 20}px`;
-            element.style.top = `${y + 2}px`;
+            element.style.right = `${document.querySelector('.timeline-container').offsetWidth - timelineConfig.timelineX + 10}px`;
+            element.style.top = `${y - 20}px`;
             
             element.innerHTML = `<p class="event-title-small">${event.title}</p>`;
             

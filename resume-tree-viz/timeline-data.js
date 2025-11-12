@@ -11,8 +11,8 @@ const timelineData = [
         // Event title
         title: 'Bachelor - IT',
         
-        // Year or date range
-        year: '2016 - 2019',
+        // Date or date range
+        date: '2016 - 2019',
         
         // Side of timeline: 'left' for small events, 'right' for main content
         side: 'right',
@@ -26,13 +26,13 @@ const timelineData = [
     {
         id: 'canvas-lib',
         title: 'JS Canvas Projects Library',
-        year: '2017',
+        date: '2017',
         side: 'left'
     },
     {
         id: 'frontend-dev',
         title: 'Full-time Frontend Engineer',
-        year: '2019-2025',
+        date: '2019-2025',
         side: 'right',
         description: 'Building scalable, performant web applications with modern JavaScript frameworks. Focus on user experience and clean code architecture.',
         stack: ['TypeScript', 'React', 'Vue.js', 'CSS3', 'Webpack', 'Jest', 'GraphQL']
@@ -40,13 +40,13 @@ const timelineData = [
     {
         id: 'bash-utils',
         title: 'Bash Utils Library',
-        year: '2020',
+        date: '2020',
         side: 'left'
     },
     {
         id: 'timesheet-auto',
         title: 'Timesheet automation',
-        year: '2021',
+        date: '2021',
         side: 'left'
     }
 ];
