@@ -98,3 +98,58 @@
 	local URL="${1:-'https://open.spotify.com/playlist/6xycakrzgflOZ8Ru1yvHK6'}"
 	spotdl $URL
 }
+
+
+
+:llm2() {
+    # ---- 1️⃣  Special flag :llm s → start the Ollama daemon ----------------
+    [[ "$1" == "s" ]] && { ollama serve; return; }
+
+    # ---- 2️⃣  Build a list of available models --------------------------------
+    mapfile -t models < <(ollama list | awk 'NR>1 {print $1}')
+
+    # ---- 3️⃣  Show menu if the first argument is not a number -------------------
+    if [[ ! $1 =~ ^[+-]?[0-9]+$ ]]; then
+        echo "Choose a model:"
+        for i in "${!models[@]}"; do
+            printf "%2d) %s\n" $((i+1)) "${models[i]}"
+        done
+        echo -n "Index [1-${#models[@]}]: "
+        read -r choice
+        [[ -n $choice ]] && set -- "$choice" "${@:2}"
+    fi
+
+    # ---- 4️⃣  Resolve the model index -----------------------------------------
+    local idx=${1:-1}
+    (( idx < 1 || idx > ${#models[@]} )) && {
+        echo "❌  Invalid index."
+        return 1
+    }
+    local model=${models[$((idx-1))]}
+
+    # ---- 5️⃣  Prepare the initial prompt (cat all files after the index) -------
+    shift   # drop the index argument
+    local prompt=""
+    for f in "$@"; do
+        if [[ -f $f ]]; then
+            prompt+=$(printf "\n--- %s ---\n" "$f")
+            prompt+=$(cat "$f")
+        else
+            prompt+=$'\n'"⚠️  File not found: $f"
+        fi
+    done
+
+    # ---- 6️⃣  Run the model ----------------------------------------------------
+    clear
+    echo "▶  Running model: $model"
+    echo "─────────────────────────────────────"
+    ollama show "$model"
+    echo
+
+    if [[ -n $prompt ]]; then
+        # Send the concatenated file content once, then hand over to interactive mode
+        printf "%s" "$prompt" | ollama run "$model"
+    else
+        ollama run "$model"
+    fi
+}
