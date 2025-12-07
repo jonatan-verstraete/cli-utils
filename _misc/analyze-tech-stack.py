@@ -15,15 +15,21 @@ from datetime import datetime, timedelta
 # --------------------------
 # CONFIG
 # --------------------------
-GITHUB_DIR = "/Users/jverstra/Documents/GitHub"
+GITHUB_DIR = "~/Documents/GitHub"
 OUTPUT_DIR = Path(__file__).parent
 
+# FILL in to get personal info
+YOUR_EMAIL_PATTERNS = [
+    "*",
+    "*",
+]
+
 # Repos to exclude from work analysis
-EXCLUDE_REPOS = {'brcisys-boa-timesheets-atuomation', 'bricsys-calendar', 'bricsys247-backend'}
+EXCLUDE_REPOS = {}
 
 # Auto-discover all bricsys* repos (same as team-stats-resume.py)
 WORK_REPOS = sorted([
-    str(p) for p in Path(GITHUB_DIR).glob("bricsys*")
+    str(p) for p in Path(GITHUB_DIR).glob("*")
     if p.is_dir() and (p / ".git").exists() and p.name not in EXCLUDE_REPOS
 ])
 
@@ -32,15 +38,11 @@ PERSONAL_REPOS = sorted([
     str(p) for p in Path(GITHUB_DIR).glob("*")
     if p.is_dir() 
     and (p / ".git").exists() 
-    and not p.name.startswith("bricsys")
     and not p.name.startswith(".")
     and p.name not in EXCLUDE_REPOS
 ])
 
-YOUR_EMAIL_PATTERNS = [
-    "jverstra",
-    "verstraete",
-]
+
 
 # Filters (same as team-stats-resume.py)
 IGNORE_MERGE_COMMITS = True
@@ -511,7 +513,6 @@ def main():
     today = datetime.now()
     
     print("🔍 Analyzing Technology Stack by LOC...")
-    print(f"Work repos: {len(WORK_REPOS)} bricsys* repositories")
     print(f"Personal repos: {len(PERSONAL_REPOS)} repositories")
     print(f"Filters: No merges, <{MAX_FILES_PER_COMMIT} files/commit, <{MAX_LOC_PER_FILE} LOC/file")
     print()
