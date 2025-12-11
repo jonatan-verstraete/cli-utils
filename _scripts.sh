@@ -6,7 +6,19 @@ cli_pth_vendors="$PATH_CLI_UTILS/vendor"
 
 
 :download-yt() {
-    $cli_pth_vendors/yt-dlp_macos -x --audio-format mp3 --audio-quality 0 "$1"
+    if ! command -v ffmpeg &> /dev/null; then
+        echo "Error: ffmpeg not installed"
+        return 1
+    fi
+
+    "$cli_pth_vendors/yt-dlp_macos" \
+        -x \
+        --audio-format m4a \
+        --audio-quality 0 \
+        -f bestaudio \
+        "$1"
+
+    # $cli_pth_vendors/yt-dlp_macos -x --audio-format mp3 --audio-quality best "$1"
 }
 
 :blink() {
