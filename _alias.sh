@@ -1,3 +1,7 @@
+# uncomment to use 'eza' instead of regular ls
+alias ls='eza'
+
+
 alias l='ls -1'
 alias ll='ls -l'
 alias la='ls -a1'

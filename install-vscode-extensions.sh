@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# VS Code Extension Installer
-# Installs all extensions from the provided list (latest versions)
 
-# Check if code command is available
 if ! command -v code &> /dev/null; then
     echo "Error: 'code' command not found. Make sure VS Code CLI is installed."
     echo "You can install it via: Cmd+Shift+P > Shell Command: Install 'code' command in PATH"
@@ -57,10 +54,9 @@ echo "Installing ${#extensions[@]} VS Code extensions..."
 echo "=============================================="
 
 for extension in "${extensions[@]}"; do
-    echo "Installing: $extension"
     code --install-extension "$extension" --force
     if [ $? -eq 0 ]; then
-        echo "✓ $extension installed successfully"
+        # echo "✓ $extension installed successfully"
     else
         echo "✗ Failed to install $extension"
     fi
