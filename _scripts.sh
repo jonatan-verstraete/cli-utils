@@ -1,4 +1,4 @@
-# function that trigger other scripts/files
+## function that trigger other scripts/files ##
 
 cli_pth_scripts="$PATH_CLI_UTILS/scripts"
 cli_pth_configs="$PATH_CLI_UTILS/saved-configs"

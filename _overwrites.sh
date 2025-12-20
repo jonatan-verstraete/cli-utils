@@ -1,4 +1,6 @@
-## Overwrites of existing functions
+## Overwrites of existing function ##
+
+
 todo_mv() {
     local mv_bin
     mv_bin=$(command -v mv)
@@ -45,9 +47,7 @@ todo_mv() {
 
 
 
-# Put this in your ~/.bashrc or ~/.bash_profile
 cd() {
-    # If no arguments, just go to home like usual
     if [ $# -eq 0 ]; then
         builtin cd ~
         return
