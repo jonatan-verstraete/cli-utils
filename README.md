@@ -1,5 +1,7 @@
 # cli-utils
-Add path to the index to include all functions:
+A repo with personal setup.
+
+Add path of the index to include all functions:
 ```sh
 echo "\nsource '$(pwd)/__index.sh'" >> ~/.zshrc
 # or
