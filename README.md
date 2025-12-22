@@ -1,8 +1,8 @@
 # cli-utils
-A repo with personal setup for quick setup on `OSX` .
+Quick personal setup for `OSX` .
 
 
-Add path of the index to include all functions:
+Add path:
 ```sh
 echo "\nsource '$(pwd)/__index.sh'" >> ~/.zshrc
 # or
@@ -10,8 +10,7 @@ echo "\nsource '$HOME/Documents/GitHub/cli-utils/__index.sh'" >> ~/.zshrc
 ```
 
 
-
-Installs
+Install:
 ```sh
 # fuzzy finder. It replaces half your brain. Rapid file navigation, command search, git integration
 brew install fzf
@@ -26,7 +25,7 @@ brew install eza
 
 > note. If you did not have  `brew install eza`, comment L2 (alias ls='eza') in [_alias.sh](./_alias.sh).
 
-## Macos Customization
+## Customization
 Commands to alter behavior.
 
 ```sh
@@ -53,7 +52,7 @@ launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist
 
 **keepers**:
 ```sh
-# can help with flickering vscode on external monitor (not persistent, should edit this)
+# can help with flickering vscode on external monitor (not persistent, wip)
 code --disable-gpu
 
 # Restart audio core

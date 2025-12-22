@@ -2,14 +2,14 @@
   "editor.fontFamily": "Fira Code",
   "editor.fontLigatures": true,
   "workbench.iconTheme": "helium-icon-theme",
-  "cSpell.userWords": ["keycloak"],
+  "cSpell.userWords": ["miljaar"],
   "animations.Install-Method": "Custom CSS and JS",
   "apc.imports": [
     "file://${userHome}/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
   ],
   "vscode_custom_css.imports": [
-    "file:///Users/me/.vscode/me-just-custom/vscode-custom.css",
-    "file:///Users/me/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
+    "file://${userHome}/.vscode/me-just-custom/vscode-custom.css",
+    "file://${userHome}/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
   ],
   "security.workspace.trust.untrustedFiles": "open",
   "github.copilot.nextEditSuggestions.enabled": true,
