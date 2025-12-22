@@ -27,7 +27,7 @@ YOUR_EMAIL_PATTERNS = [
 # Repos to exclude from work analysis
 EXCLUDE_REPOS = {}
 
-# Auto-discover all bricsys* repos (same as team-stats-resume.py)
+# Auto-discover all repos (same as team-stats-resume.py)
 WORK_REPOS = sorted([
     str(p) for p in Path(GITHUB_DIR).glob("*")
     if p.is_dir() and (p / ".git").exists() and p.name not in EXCLUDE_REPOS
@@ -90,6 +90,7 @@ TECH_PATTERNS = {
 }
 
 # Package names to look for in package.json dependencies
+# update to usage
 PACKAGE_DETECTION = {
     # State Management
     "Zustand": ["zustand"],

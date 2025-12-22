@@ -8,8 +8,8 @@
     "file://${userHome}/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
   ],
   "vscode_custom_css.imports": [
-    "file:///Users/jverstra/.vscode/me-just-custom/vscode-custom.css",
-    "file:///Users/jverstra/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
+    "file:///Users/me/.vscode/me-just-custom/vscode-custom.css",
+    "file:///Users/me/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
   ],
   "security.workspace.trust.untrustedFiles": "open",
   "github.copilot.nextEditSuggestions.enabled": true,
@@ -42,11 +42,11 @@
   // "custom-ui-style.external.loadStrategy": "cache",
   "custom-ui-style.stylesheet": {
     // this sets the bqckground image and the gradient
-    // ".monaco-editor": "background-image: url('/Users/jverstra/.vscode/me-just-custom/bg02-circles.gif') !important;",
+    // ".monaco-editor": "background-image: url('/Users/me/.vscode/me-just-custom/bg02-circles.gif') !important;",
     // ".overflow-guard": "background: transparent !important",
     ".monaco-editor": "background: transparent !important",
-    // ".monaco-editor .overflow-guard, .view-lines.monaco-mouse-cursor-text": "background-image: url('/Users/jverstra/.vscode/me-just-custom/bg02-circles.gif') !important; background: transparent !important",
-    ".monaco-editor .overflow-guard": "background-image: url('/Users/jverstra/.vscode/me-just-custom/bg02-circles.gif') !important; background: transparent !important",
+    // ".monaco-editor .overflow-guard, .view-lines.monaco-mouse-cursor-text": "background-image: url('/Users/me/.vscode/me-just-custom/bg02-circles.gif') !important; background: transparent !important",
+    ".monaco-editor .overflow-guard": "background-image: url('/Users/me/.vscode/me-just-custom/bg02-circles.gif') !important; background: transparent !important",
     ".monaco-editor-background": "background: #242424; !important; background: linear-gradient(90deg,rgba(25, 25, 25, 0.99) 0%, rgba(45, 45, 45, 0.8) 70%) !important; backdrop-filter: blur(7px) brightness(0.7)",
     // ".monaco-editor-background": "background: linear-gradient(270deg, #1e1e1e, #f52526, #1e1e1e) !important; background-size: 600% 600%; animation: backgroundMove 20s ease infinite;",
     ".notification-toast": "box-shadow: none !important",

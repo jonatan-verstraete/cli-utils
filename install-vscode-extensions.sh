@@ -2,12 +2,11 @@
 
 
 if ! command -v code &> /dev/null; then
-    echo "Error: 'code' command not found. Make sure VS Code CLI is installed."
     echo "You can install it via: Cmd+Shift+P > Shell Command: Install 'code' command in PATH"
     exit 1
 fi
 
-# Extension list (filtering out non-extension entries)
+
 extensions=(
     "be5invis.vscode-custom-css"
     "bradlc.vscode-tailwindcss"
@@ -50,17 +49,11 @@ extensions=(
     "zhuangtongfa.one-dark-pro"
 )
 
-echo "Installing ${#extensions[@]} VS Code extensions..."
-echo "=============================================="
 
 for extension in "${extensions[@]}"; do
     code --install-extension "$extension" --force
     if [ $? -eq 0 ]; then
-        # echo "✓ $extension installed successfully"
     else
-        echo "✗ Failed to install $extension"
+        echo "Failed to install $extension"
     fi
 done
-
-echo "=============================================="
-echo "Installation complete!"
